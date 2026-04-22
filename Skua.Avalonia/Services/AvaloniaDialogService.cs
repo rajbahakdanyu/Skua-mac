@@ -139,4 +139,96 @@ public class AvaloniaDialogService : IDialogService
             return vm.Result ?? DialogResult.Cancelled;
         });
     }
+
+    // --- Async overrides: these await properly without blocking the Cocoa event loop ---
+
+    public async Task ShowMessageBoxAsync(string message, string caption)
+    {
+        await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            var vm = new MessageBoxDialogViewModel(message, caption);
+            var dialog = new HostDialog { DataContext = vm };
+            var owner = GetOwner();
+            if (owner is not null)
+                await dialog.ShowDialog<bool?>(owner);
+            else
+                dialog.Show();
+        });
+    }
+
+    public async Task<bool?> ShowMessageBoxAsync(string message, string caption, bool yesAndNo)
+    {
+        return await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            var vm = new MessageBoxDialogViewModel(message, caption, yesAndNo);
+            var dialog = new HostDialog { DataContext = vm };
+            var owner = GetOwner();
+            if (owner is not null)
+                await dialog.ShowDialog<bool?>(owner);
+            else
+                dialog.Show();
+            return dialog.DialogResult;
+        });
+    }
+
+    public async Task<DialogResult> ShowMessageBoxAsync(string message, string caption, params string[] buttons)
+    {
+        return await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            var vm = new CustomDialogViewModel(message, caption, buttons);
+            var dialog = new HostDialog { DataContext = vm };
+            var owner = GetOwner();
+            if (owner is not null)
+                await dialog.ShowDialog<bool?>(owner);
+            else
+                dialog.Show();
+            return vm.Result ?? DialogResult.Cancelled;
+        });
+    }
+
+    public async Task<bool?> ShowDialogAsync<TViewModel>(TViewModel viewModel) where TViewModel : class
+    {
+        return await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            var dialog = new HostDialog { DataContext = viewModel };
+            var owner = GetOwner();
+            if (owner is not null)
+                await dialog.ShowDialog<bool?>(owner);
+            else
+                dialog.Show();
+            return dialog.DialogResult;
+        });
+    }
+
+    public async Task<bool?> ShowDialogAsync<TViewModel>(TViewModel viewModel, string title) where TViewModel : class
+    {
+        return await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            var dialog = new HostDialog { DataContext = viewModel, Title = title };
+            var owner = GetOwner();
+            if (owner is not null)
+                await dialog.ShowDialog<bool?>(owner);
+            else
+                dialog.Show();
+            return dialog.DialogResult;
+        });
+    }
+
+    public async Task<bool?> ShowDialogAsync<TViewModel>(TViewModel viewModel, Action<TViewModel> callback) where TViewModel : class
+    {
+        return await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            var dialog = new HostDialog { DataContext = viewModel };
+            dialog.Closed += (s, e) =>
+            {
+                try { callback(viewModel); } catch { }
+            };
+            var owner = GetOwner();
+            if (owner is not null)
+                await dialog.ShowDialog<bool?>(owner);
+            else
+                dialog.Show();
+            return dialog.DialogResult;
+        });
+    }
 }

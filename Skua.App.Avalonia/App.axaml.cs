@@ -1,13 +1,19 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
+using Skua.Avalonia;
 using Skua.Avalonia.Services;
 using Skua.Core.AppStartup;
 using Skua.Core.Interfaces;
+using Skua.Core.Models;
 using Skua.Core.Utils;
+using Skua.Core.ViewModels;
 using System.Globalization;
 using Westwind.Scripting;
 
@@ -169,5 +175,40 @@ public sealed partial class App : Application
         Ioc.Default.ConfigureServices(provider);
 
         return provider;
+    }
+
+    // --- Dialog button click handlers ---
+
+    public void DialogOK_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.FindAncestorOfType<Window>() is HostDialog dialog)
+        {
+            dialog.DialogResult = true;
+            dialog.Close();
+        }
+    }
+
+    public void DialogYesNo_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.FindAncestorOfType<Window>() is HostDialog dialog)
+        {
+            dialog.DialogResult = btn.Tag?.ToString() == "True";
+            dialog.Close();
+        }
+    }
+
+    public void CustomDialogButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.FindAncestorOfType<Window>() is HostDialog dialog)
+        {
+            string text = btn.Content?.ToString() ?? string.Empty;
+            if (dialog.DataContext is CustomDialogViewModel vm)
+            {
+                int index = vm.Buttons.IndexOf(text);
+                vm.Result = new DialogResult(text, index);
+            }
+            dialog.DialogResult = true;
+            dialog.Close();
+        }
     }
 }

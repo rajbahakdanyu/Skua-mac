@@ -24,5 +24,37 @@
         <DataTemplate DataType="vm:BotWindowViewModel">
             <views:BotWindowView />
         </DataTemplate>
+
+        <!-- Dialog templates -->
+        <DataTemplate DataType="vm:MessageBoxDialogViewModel">
+            <StackPanel Margin="16" Spacing="12" MinWidth="300">
+                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8" IsVisible="{Binding !YesAndNo}">
+                    <Button Content="OK" IsDefault="True" Click="DialogOK_Click" />
+                </StackPanel>
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8" IsVisible="{Binding YesAndNo}">
+                    <Button Content="Yes" IsDefault="True" Tag="True" Click="DialogYesNo_Click" />
+                    <Button Content="No" IsCancel="True" Tag="False" Click="DialogYesNo_Click" />
+                </StackPanel>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="vm:CustomDialogViewModel">
+            <StackPanel Margin="16" Spacing="12" MinWidth="300">
+                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                <ItemsControl ItemsSource="{Binding Buttons}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding}" Click="CustomDialogButton_Click" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </DataTemplate>
     </Application.DataTemplates>
 </Application>
