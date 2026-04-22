@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+    xmlns:local="clr-namespace:Skua.App.Avalonia.Views" mc:Ignorable="d" d:DesignHeight="400" d:DesignWidth="400" x:Class="Skua.App.Avalonia.Views.OptionContainerView" x:DataType="vm:OptionContainerViewModel">
+    <Grid RowDefinitions="*,Auto" Margin="8">
+        <ScrollViewer Grid.Row="0">
+            <ItemsControl ItemsSource="{Binding Options}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:OptionContainerItemViewModel">
+                        <Border Margin="0,2" Padding="6,4" CornerRadius="4" Background="{DynamicResource SystemControlBackgroundListLowBrush}">
+                            <Grid ColumnDefinitions="*,*">
+                                <TextBlock Grid.Column="0" Text="{Binding Option.Name}" VerticalAlignment="Center" />
+                                <Panel Grid.Column="1">
+                                    <!-- Bool option -->
+                                    <CheckBox IsChecked="{Binding Value}" IsVisible="{Binding Type, Converter={x:Static local:TypeConverters.IsBool}}" HorizontalAlignment="Right" />
+                                    <!-- Enum option -->
+                                    <ComboBox ItemsSource="{Binding EnumValues}" SelectedItem="{Binding SelectedValue}" IsVisible="{Binding Type, Converter={x:Static local:TypeConverters.IsEnum}}" HorizontalAlignment="Stretch" />
+                                    <!-- String/number option -->
+                                    <TextBox Text="{Binding Value}" IsVisible="{Binding Type, Converter={x:Static local:TypeConverters.IsOther}}" HorizontalAlignment="Stretch" />
+                                </Panel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        <Button Grid.Row="1" Content="Close" HorizontalAlignment="Right" Margin="0,8,0,0" Click="CloseClicked" />
+    </Grid>
+</UserControl>

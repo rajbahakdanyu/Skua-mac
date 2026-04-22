@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core" mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800" x:Class="Skua.App.Avalonia.Views.BotWindowView" x:DataType="vm:BotWindowViewModel">
+    <Grid ColumnDefinitions="200,*">
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" Padding="0,4">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="8,4">
+                    <Button Command="{Binding MovePrevCommand}" Content="◀" Padding="8,4" />
+                    <Button Command="{Binding MoveNextCommand}" Content="▶" Padding="8,4" />
+                    <Button Command="{Binding HomeCommand}" Content="⌂" Padding="8,4" />
+                </StackPanel>
+                <ListBox ItemsSource="{Binding BotViews}" SelectedIndex="{Binding SelectedIndex}" SelectedItem="{Binding SelectedItem}" Margin="0,8,0,0">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Title}" Padding="8,4" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <!-- Content -->
+        <ContentControl Grid.Column="1" Content="{Binding SelectedItem}" Margin="4" />
+    </Grid>
+</UserControl>

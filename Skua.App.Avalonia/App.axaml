@@ -1,6 +1,28 @@
 <Application xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Skua.App.Avalonia.App" RequestedThemeVariant="Dark">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+    xmlns:views="clr-namespace:Skua.App.Avalonia.Views" x:Class="Skua.App.Avalonia.App" RequestedThemeVariant="Dark">
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>
+    <Application.DataTemplates>
+        <DataTemplate DataType="vm:ScriptLoaderViewModel">
+            <views:ScriptLoaderView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:ScriptRepoViewModel">
+            <views:ScriptRepoView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:LogsViewModel">
+            <views:LogsView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:LogTabViewModel">
+            <views:LogTabView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:OptionContainerViewModel">
+            <views:OptionContainerView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:BotWindowViewModel">
+            <views:BotWindowView />
+        </DataTemplate>
+    </Application.DataTemplates>
 </Application>

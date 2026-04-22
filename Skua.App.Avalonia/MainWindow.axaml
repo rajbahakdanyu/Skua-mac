@@ -5,7 +5,7 @@
     xmlns:local="clr-namespace:Skua.App.Avalonia" mc:Ignorable="d" x:Class="Skua.App.Avalonia.MainWindow" Title="{Binding Title}" Width="960" Height="620" WindowStartupLocation="CenterScreen">
     <Grid RowDefinitions="Auto,*">
         <!-- Main Menu Bar -->
-        <local:MainMenuView Grid.Row="0" DataContext="{Binding MainMenuViewModel}" />
+        <local:MainMenuView Grid.Row="0" />
 
         <!-- Game Container -->
         <local:GameContainerView Grid.Row="1" />

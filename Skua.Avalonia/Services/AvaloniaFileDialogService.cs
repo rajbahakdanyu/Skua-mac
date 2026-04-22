@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
-using Avalonia.Threading;
 using Skua.Core.Interfaces;
 using Skua.Core.Models;
 
@@ -17,87 +16,88 @@ public class AvaloniaFileDialogService : IFileDialogService
             : null;
     }
 
-    private T? InvokeOnUI<T>(Func<Task<T?>> func)
+    // Sync wrappers — these deadlock on macOS if called from the UI thread.
+    // Use the async overloads instead from async command handlers.
+    public string? OpenFile() => OpenFileAsync().GetAwaiter().GetResult();
+    public string? OpenFile(string filter) => OpenFileAsync(filter).GetAwaiter().GetResult();
+    public string? OpenFile(string initialDirectory, string filter) => OpenFileAsync(initialDirectory, filter).GetAwaiter().GetResult();
+    public string? OpenFolder() => OpenFolderAsync().GetAwaiter().GetResult();
+    public string? OpenFolder(string initialDirectory) => OpenFolderAsync(initialDirectory).GetAwaiter().GetResult();
+
+    public async Task<string?> OpenFileAsync()
     {
-        if (Dispatcher.UIThread.CheckAccess())
-            return func().GetAwaiter().GetResult();
-        return Dispatcher.UIThread.InvokeAsync(func).GetAwaiter().GetResult();
+        var window = GetMainWindow();
+        if (window is null) return null;
+        var result = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            AllowMultiple = false,
+            SuggestedStartLocation = await window.StorageProvider.TryGetFolderFromPathAsync(ClientFileSources.SkuaDIR)
+        });
+        return result.Count > 0 ? result[0].Path.LocalPath : null;
     }
 
-    public string? OpenFile()
+    public async Task<string?> OpenFileAsync(string filter)
     {
-        return InvokeOnUI(async () =>
+        var window = GetMainWindow();
+        if (window is null) return null;
+        var result = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            var window = GetMainWindow();
-            if (window is null) return null;
-            var result = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            {
-                AllowMultiple = false,
-                SuggestedStartLocation = await window.StorageProvider.TryGetFolderFromPathAsync(ClientFileSources.SkuaDIR)
-            });
-            return result.Count > 0 ? result[0].Path.LocalPath : null;
+            AllowMultiple = false,
+            SuggestedStartLocation = await window.StorageProvider.TryGetFolderFromPathAsync(ClientFileSources.SkuaDIR),
+            FileTypeFilter = ParseFilter(filter)
         });
+        return result.Count > 0 ? result[0].Path.LocalPath : null;
     }
 
-    public string? OpenFile(string filter)
+    public async Task<string?> OpenFileAsync(string initialDirectory, string filter)
     {
-        return InvokeOnUI(async () =>
+        var window = GetMainWindow();
+        if (window is null) return null;
+        var result = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            var window = GetMainWindow();
-            if (window is null) return null;
-            var result = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            {
-                AllowMultiple = false,
-                SuggestedStartLocation = await window.StorageProvider.TryGetFolderFromPathAsync(ClientFileSources.SkuaDIR),
-                FileTypeFilter = ParseFilter(filter)
-            });
-            return result.Count > 0 ? result[0].Path.LocalPath : null;
+            AllowMultiple = false,
+            SuggestedStartLocation = await window.StorageProvider.TryGetFolderFromPathAsync(initialDirectory),
+            FileTypeFilter = ParseFilter(filter)
         });
+        return result.Count > 0 ? result[0].Path.LocalPath : null;
     }
 
-    public string? OpenFile(string initialDirectory, string filter)
+    public async Task<string?> OpenFolderAsync()
     {
-        return InvokeOnUI(async () =>
+        var window = GetMainWindow();
+        if (window is null) return null;
+        var result = await window.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            var window = GetMainWindow();
-            if (window is null) return null;
-            var result = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            {
-                AllowMultiple = false,
-                SuggestedStartLocation = await window.StorageProvider.TryGetFolderFromPathAsync(initialDirectory),
-                FileTypeFilter = ParseFilter(filter)
-            });
-            return result.Count > 0 ? result[0].Path.LocalPath : null;
+            AllowMultiple = false
         });
+        return result.Count > 0 ? result[0].Path.LocalPath : null;
     }
 
-    public string? OpenFolder(string initialDirectory)
+    public async Task<string?> OpenFolderAsync(string initialDirectory)
     {
-        return InvokeOnUI(async () =>
+        var window = GetMainWindow();
+        if (window is null) return null;
+        var result = await window.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            var window = GetMainWindow();
-            if (window is null) return null;
-            var result = await window.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-            {
-                AllowMultiple = false,
-                SuggestedStartLocation = await window.StorageProvider.TryGetFolderFromPathAsync(initialDirectory)
-            });
-            return result.Count > 0 ? result[0].Path.LocalPath : null;
+            AllowMultiple = false,
+            SuggestedStartLocation = await window.StorageProvider.TryGetFolderFromPathAsync(initialDirectory)
         });
+        return result.Count > 0 ? result[0].Path.LocalPath : null;
     }
 
-    public string? OpenFolder()
+    public async Task<string?> SaveAsync()
     {
-        return InvokeOnUI(async () =>
-        {
-            var window = GetMainWindow();
-            if (window is null) return null;
-            var result = await window.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-            {
-                AllowMultiple = false
-            });
-            return result.Count > 0 ? result[0].Path.LocalPath : null;
-        });
+        return await SaveInternalAsync(ClientFileSources.SkuaDIR, "Text Files (*.txt)|*.txt");
+    }
+
+    public async Task<string?> SaveAsync(string filter)
+    {
+        return await SaveInternalAsync(ClientFileSources.SkuaDIR, filter);
+    }
+
+    public async Task<string?> SaveAsync(string initialDirectory, string filter)
+    {
+        return await SaveInternalAsync(initialDirectory, filter);
     }
 
     public IEnumerable<string>? OpenText()
@@ -137,17 +137,19 @@ public class AvaloniaFileDialogService : IFileDialogService
 
     private string? SaveInternal(string initialDirectory, string filter)
     {
-        return InvokeOnUI(async () =>
+        return SaveInternalAsync(initialDirectory, filter).GetAwaiter().GetResult();
+    }
+
+    private async Task<string?> SaveInternalAsync(string initialDirectory, string filter)
+    {
+        var window = GetMainWindow();
+        if (window is null) return null;
+        var result = await window.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            var window = GetMainWindow();
-            if (window is null) return null;
-            var result = await window.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
-            {
-                SuggestedStartLocation = await window.StorageProvider.TryGetFolderFromPathAsync(initialDirectory),
-                FileTypeChoices = ParseFilter(filter)
-            });
-            return result?.Path.LocalPath;
+            SuggestedStartLocation = await window.StorageProvider.TryGetFolderFromPathAsync(initialDirectory),
+            FileTypeChoices = ParseFilter(filter)
         });
+        return result?.Path.LocalPath;
     }
 
     private static List<FilePickerFileType> ParseFilter(string filter)

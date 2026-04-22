@@ -20,14 +20,32 @@ public class AvaloniaDialogService : IDialogService
     private T InvokeOnUI<T>(Func<Task<T>> func)
     {
         if (Dispatcher.UIThread.CheckAccess())
-            return func().GetAwaiter().GetResult();
+        {
+            // Avalonia-managed dialogs dispatch completions through the Avalonia job queue,
+            // so RunJobs() can process them (unlike native OS file pickers).
+            var task = func();
+            while (!task.IsCompleted)
+            {
+                Dispatcher.UIThread.RunJobs();
+                Thread.Sleep(10);
+            }
+            return task.GetAwaiter().GetResult();
+        }
         return Dispatcher.UIThread.InvokeAsync(func).GetAwaiter().GetResult();
     }
 
     private void InvokeOnUI(Func<Task> func)
     {
         if (Dispatcher.UIThread.CheckAccess())
-            func().GetAwaiter().GetResult();
+        {
+            var task = func();
+            while (!task.IsCompleted)
+            {
+                Dispatcher.UIThread.RunJobs();
+                Thread.Sleep(10);
+            }
+            task.GetAwaiter().GetResult();
+        }
         else
             Dispatcher.UIThread.InvokeAsync(func).GetAwaiter().GetResult();
     }

@@ -134,11 +134,11 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
     }
 
     [RelayCommand]
-    private void LoadScript(string? path = null)
+    private async Task LoadScript(string? path = null)
     {
         if (string.IsNullOrWhiteSpace(path))
         {
-            path = _fileDialog.OpenFile(_scriptPath, "Skua Scripts (*.cs)|*.cs");
+            path = await _fileDialog.OpenFileAsync(_scriptPath, "Skua Scripts (*.cs)|*.cs");
             if (path is null)
                 return;
         }
