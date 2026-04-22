@@ -1,0 +1,25 @@
+using Avalonia.Controls;
+using CommunityToolkit.Mvvm.Messaging;
+
+namespace Skua.Avalonia;
+
+public partial class HostWindow : Window
+{
+    public HostWindow()
+    {
+        InitializeComponent();
+        Closed += HostWindow_Closed;
+    }
+
+    private void HostWindow_Closed(object? sender, EventArgs e)
+    {
+        Closed -= HostWindow_Closed;
+        if (DataContext is not null)
+        {
+            StrongReferenceMessenger.Default.Unregister<object>(DataContext);
+            if (DataContext is IDisposable disposable)
+                disposable.Dispose();
+        }
+        DataContext = null;
+    }
+}

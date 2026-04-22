@@ -2,7 +2,7 @@
 
 ![Skua Icon](https://raw.githubusercontent.com/auqw/Skua/refs/heads/master/SkuaIcon.ico)
 
-## [Usage](./usage.md) | [Contributors](#contributors) | [Build Guide](./BUILD.md) | [Support](#skua-developers)
+## [Usage](./usage.md) | [Contributors](#contributors) | [Build Guide](./BUILD.md) | [macOS Guide](./MACOS.md) | [Support](#skua-developers)
 
 </div>
 

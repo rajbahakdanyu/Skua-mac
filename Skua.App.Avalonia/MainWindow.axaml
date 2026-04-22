@@ -1,0 +1,13 @@
+<Window xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="clr-namespace:Skua.App.Avalonia" mc:Ignorable="d" x:Class="Skua.App.Avalonia.MainWindow" Title="{Binding Title}" Width="960" Height="620" WindowStartupLocation="CenterScreen">
+    <Grid RowDefinitions="Auto,*">
+        <!-- Main Menu Bar -->
+        <local:MainMenuView Grid.Row="0" DataContext="{Binding MainMenuViewModel}" />
+
+        <!-- Game Container -->
+        <local:GameContainerView Grid.Row="1" />
+    </Grid>
+</Window>

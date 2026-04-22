@@ -67,6 +67,20 @@ This document provides instructions for building the Skua project from source, i
 
 The main build automation script with full control over the build process.
 
+### Portable Build Script (`Build-Skua-Portable.ps1`)
+
+Builds a **self-contained** portable package that bundles the .NET runtime. This is useful for running Skua under Wine/CrossOver on macOS without installing .NET separately. See [MACOS.md](MACOS.md) for the full macOS guide.
+
+```powershell
+# Build self-contained portable package (x64)
+.\Build-Skua-Portable.ps1
+
+# Build for x86
+.\Build-Skua-Portable.ps1 -Platform x86
+```
+
+Output is placed in `build/Portable/x64/` (or `x86/`).
+
 #### Basic Usage
 
 ```powershell

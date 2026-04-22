@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core" mc:Ignorable="d" x:Class="Skua.App.Avalonia.MainMenuView" d:DesignHeight="30" d:DesignWidth="960">
+    <DockPanel Height="30" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}">
+        <!-- Bot Window button -->
+        <Button Command="{Binding ShowBotWindowCommand}" Content="+" DockPanel.Dock="Left" Padding="8,2" Margin="2" />
+
+        <!-- Jump popup -->
+        <ToggleButton x:Name="JumpToggle" Content="Jump" DockPanel.Dock="Left" Padding="8,2" Margin="2" />
+
+        <!-- Auto popup -->
+        <ToggleButton x:Name="AutoToggle" Content="Auto" DockPanel.Dock="Left" Padding="8,2" Margin="2" />
+
+        <!-- Main Menu -->
+        <Menu DockPanel.Dock="Left" VerticalAlignment="Center">
+            <MenuItem Header="Plugins" ItemsSource="{Binding Plugins}">
+                <MenuItem.ItemTemplate>
+                    <DataTemplate>
+                        <MenuItem Header="{Binding Title}" Command="{Binding Command}" />
+                    </DataTemplate>
+                </MenuItem.ItemTemplate>
+            </MenuItem>
+        </Menu>
+
+        <Menu DockPanel.Dock="Left" ItemsSource="{Binding MainMenuItems}" VerticalAlignment="Center">
+            <Menu.ItemTemplate>
+                <DataTemplate>
+                    <MenuItem Header="{Binding Title}" Command="{Binding Command}" ItemsSource="{Binding SubItems}">
+                        <MenuItem.ItemTemplate>
+                            <DataTemplate>
+                                <MenuItem Header="{Binding Title}" Command="{Binding Command}" />
+                            </DataTemplate>
+                        </MenuItem.ItemTemplate>
+                    </MenuItem>
+                </DataTemplate>
+            </Menu.ItemTemplate>
+        </Menu>
+    </DockPanel>
+</UserControl>
