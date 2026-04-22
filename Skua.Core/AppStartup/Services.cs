@@ -264,6 +264,20 @@ public static class Services
                         refs.Add(MetadataReference.CreateFromFile(regexPath));
                     }
 
+                    // On non-Windows, add System.Drawing.Primitives for Size/Color/PointF/ColorTranslator
+                    if (!OperatingSystem.IsWindows())
+                    {
+                        string runtimeDir = Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location)!;
+                        string drawingPrimitivesPath = Path.Combine(runtimeDir, "System.Drawing.Primitives.dll");
+                        if (File.Exists(drawingPrimitivesPath))
+                            refs.Add(MetadataReference.CreateFromFile(drawingPrimitivesPath));
+
+                        // Also try to add from app base directory (self-contained publish)
+                        string appBaseDrawing = Path.Combine(AppContext.BaseDirectory, "System.Drawing.Primitives.dll");
+                        if (File.Exists(appBaseDrawing) && appBaseDrawing != drawingPrimitivesPath)
+                            refs.Add(MetadataReference.CreateFromFile(appBaseDrawing));
+                    }
+
                     refs.AddRange(refPaths.Select(s => MetadataReference.CreateFromFile(s)));
                     _cachedBaseReferences = refs;
                 }
