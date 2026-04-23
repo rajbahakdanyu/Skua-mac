@@ -433,7 +433,9 @@ public class RuffleBridge : IDisposable, IComponent
         try
         {
             XElement el = XElement.Parse(invokeXml);
-            name = el.Attribute("name")!.Value;
+            name = el.Attribute("name")?.Value ?? string.Empty;
+            if (string.IsNullOrEmpty(name))
+                return null;
             var argsElement = el.Element("arguments");
             args = argsElement?.Elements().Select(x => ParseFlashArg(x)).ToArray() ?? Array.Empty<object>();
         }
@@ -576,9 +578,11 @@ public class RuffleBridge : IDisposable, IComponent
                     if (root.TryGetProperty("type", out var typeEl) && typeEl.GetString() == "flashcall")
                     {
                         // SWF → .NET flash call via WebSocket — dispatch to thread pool
-                        string xml = root.GetProperty("xml").GetString()!;
+                        string xml = root.GetProperty("xml").GetString() ?? string.Empty;
+                        if (string.IsNullOrEmpty(xml)) continue;
                         var el = XElement.Parse(xml);
-                        string function = el.Attribute("name")!.Value;
+                        string function = el.Attribute("name")?.Value ?? string.Empty;
+                        if (string.IsNullOrEmpty(function)) continue;
                         var argsElement = el.Element("arguments");
                         object[] args = argsElement?.Elements().Select(x => ParseFlashArg(x)).ToArray() ?? Array.Empty<object>();
                         ThreadPool.QueueUserWorkItem(_ => FlashCall?.Invoke(function, args));
@@ -586,9 +590,9 @@ public class RuffleBridge : IDisposable, IComponent
                     else if (root.TryGetProperty("id", out var idEl))
                     {
                         // Call result from browser — complete the pending call
-                        string id = idEl.GetString()!;
-                        string callResult = root.GetProperty("result").GetString()!;
-                        if (_pendingCalls.TryRemove(id, out var tcs))
+                        string? id = idEl.GetString();
+                        string? callResult = root.TryGetProperty("result", out var resultEl) ? resultEl.GetString() : null;
+                        if (id is not null && _pendingCalls.TryRemove(id, out var tcs))
                             tcs.TrySetResult(callResult);
                     }
                 }

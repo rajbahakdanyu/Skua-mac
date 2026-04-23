@@ -223,16 +223,18 @@ public partial class ScriptMap : IScriptMap
                     switch (mapItemLine.Contains("getmapitem"))
                     {
                         case true:
-                            questID = MainTimelineText.Skip(index - 5 < 0 ? 0 : index - 5).Take(10).FirstOrDefault(l => l.Contains("isquestinprogress"))!;
+                            questID = MainTimelineText.Skip(index - 5 < 0 ? 0 : index - 5).Take(10).FirstOrDefault(l => l.Contains("isquestinprogress"));
 
+                            if (questID is null) break;
                             questID = questID.ToLower().Split("isquestinprogress")[1].Split(')')[0].RemoveLetters() ?? "";
 
                             mapItem = mapItemLine.RemoveLetters();
                             break;
 
                         case false:
-                            questID = MainTimelineText.Skip(index - 5 < 0 ? 0 : index - 5).Take(10).FirstOrDefault(l => l.Contains("questnum") || (l.Contains("intquest") && !l.Contains("intquestval")))!;
+                            questID = MainTimelineText.Skip(index - 5 < 0 ? 0 : index - 5).Take(10).FirstOrDefault(l => l.Contains("questnum") || (l.Contains("intquest") && !l.Contains("intquestval")));
 
+                            if (questID is null) break;
                             questID = questID.Split('=')[1].RemoveLetters() ?? "";
 
                             mapItem = mapItemLine.Split('=')[1].RemoveLetters();

@@ -176,7 +176,7 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
         {
             object compiled = await Task.Run(() => ScriptManager.Compile(File.ReadAllText(ScriptManager.LoadedScript))!);
             ScriptManager.LoadScriptConfig(compiled);
-            if (ScriptManager.Config!.Options.Count > 0 || ScriptManager.Config.MultipleOptions.Count > 0)
+            if (ScriptManager.Config is not null && (ScriptManager.Config.Options.Count > 0 || ScriptManager.Config.MultipleOptions.Count > 0))
                 ScriptManager.Config.Configure();
             else
                 await _dialogService.ShowMessageBoxAsync("The loaded script has no options to configure.", "No Options");

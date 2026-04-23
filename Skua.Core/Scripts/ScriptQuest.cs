@@ -131,7 +131,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
     public Quest? EnsureLoad(int id)
     {
         Wait.ForTrue(() => Tree.Contains(x => x.ID == id), () => Load(id), 20, 1000);
-        return Tree.Find(q => q.ID == id)!;
+        return Tree.Find(q => q.ID == id);
     }
 
     public bool TryGetQuest(int id, out Quest? quest)

@@ -155,7 +155,12 @@ public class RuffleFlashUtil : IFlashUtil
                 return el.Elements().Select(e => FromFlashXml(e)).ToArray();
             case "object":
                 dynamic d = new ExpandoObject();
-                el.Elements().ForEach(e => ((IDictionary<string, object>)d)[e.Attribute("id")!.Value] = FromFlashXml(e.Elements().First()));
+                el.Elements().ForEach(e =>
+                {
+                    var idAttr = e.Attribute("id");
+                    if (idAttr is not null && e.Elements().Any())
+                        ((IDictionary<string, object>)d)[idAttr.Value] = FromFlashXml(e.Elements().First());
+                });
                 return d;
             default:
                 return el.Value;

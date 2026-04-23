@@ -426,13 +426,18 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                 break;
 
             case "debug":
-                Trace.WriteLine(args[0]);
+                if (args is { Length: > 0 })
+                    Trace.WriteLine(args[0]);
                 break;
 
             case "pext":
-                dynamic packet = JsonConvert.DeserializeObject<dynamic>((string)args[0])!;
-                string type = packet["params"].type;
-                dynamic data = packet["params"].dataObj;
+                if (args is not { Length: > 0 }) break;
+                dynamic? packet = JsonConvert.DeserializeObject<dynamic>((string)args[0]);
+                if (packet is null) break;
+                var paramsObj = packet["params"];
+                if (paramsObj is null) break;
+                string type = paramsObj.type;
+                dynamic data = paramsObj.dataObj;
                 if (type is not null and "json")
                 {
                     string cmd = data.cmd;
@@ -508,15 +513,18 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
 
                         case "dropItem":
                             string items = Convert.ToString(data["items"]);
-                            InventoryItem drop = JsonConvert.DeserializeObject<Dictionary<string, InventoryItem>>(items)!.First().Value;
+                            var itemsDict = JsonConvert.DeserializeObject<Dictionary<string, InventoryItem>>(items);
+                            if (itemsDict is null || itemsDict.Count == 0) break;
+                            InventoryItem drop = itemsDict.First().Value;
                             Messenger.Send<ItemDroppedMessage, int>(new(drop), (int)MessageChannels.GameEvents);
                             break;
 
                         case "addItems":
                             string addItems = Convert.ToString(data["items"]);
-                            Dictionary<int, dynamic> addedItem = JsonConvert.DeserializeObject<Dictionary<int, dynamic>>(addItems)!;
-                            int itemID = addedItem.Keys.First()!;
-                            ItemBase invItem = Inventory.GetItem(itemID) ?? TempInv.GetItem(itemID)!;
+                            var addedItem = JsonConvert.DeserializeObject<Dictionary<int, dynamic>>(addItems);
+                            if (addedItem is null || addedItem.Count == 0) break;
+                            int itemID = addedItem.Keys.First();
+                            ItemBase? invItem = Inventory.GetItem(itemID) ?? TempInv.GetItem(itemID);
                             Stats.GetSpace();
                             if (invItem is null)
                             {
@@ -540,8 +548,9 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             }
                             if (toBank)
                             {
-                                ItemBase bankItem = Bank.GetItem(Convert.ToInt32(data.ItemID))!;
-                                Messenger.Send<ItemAddedToBankMessage, int>(new(bankItem, Convert.ToInt32(data.iQtyNow)), (int)MessageChannels.GameEvents);
+                                ItemBase? bankItem = Bank.GetItem(Convert.ToInt32(data.ItemID));
+                                if (bankItem is not null)
+                                    Messenger.Send<ItemAddedToBankMessage, int>(new(bankItem, Convert.ToInt32(data.iQtyNow)), (int)MessageChannels.GameEvents);
                             }
                             break;
 
@@ -599,21 +608,30 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                 break;
 
             case "packet":
+                if (args is not { Length: > 0 }) break;
                 string[] parts = ((string)args[0]).Split('%', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length < 3) break;
                 switch (parts[2])
                 {
                     case "moveToCell":
-                        Messenger.Send<CellChangedMessage, int>(new(Map.Name, parts[4], parts[5]), (int)MessageChannels.GameEvents);
+                        if (parts.Length >= 6)
+                            Messenger.Send<CellChangedMessage, int>(new(Map.Name, parts[4], parts[5]), (int)MessageChannels.GameEvents);
                         break;
 
                     case "buyItem":
-                        Stats.GetSpace();
-                        Messenger.Send<TryBuyItemMessage, int>(new(int.Parse(parts[5]), int.Parse(parts[4]), int.Parse(parts[6])), (int)MessageChannels.GameEvents);
+                        if (parts.Length >= 7)
+                        {
+                            Stats.GetSpace();
+                            Messenger.Send<TryBuyItemMessage, int>(new(int.Parse(parts[5]), int.Parse(parts[4]), int.Parse(parts[6])), (int)MessageChannels.GameEvents);
+                        }
                         break;
 
                     case "acceptQuest":
-                        Stats.QuestsAccepted++;
-                        Messenger.Send<QuestAcceptedMessage, int>(new(int.Parse(parts[4])), (int)MessageChannels.GameEvents);
+                        if (parts.Length >= 5)
+                        {
+                            Stats.QuestsAccepted++;
+                            Messenger.Send<QuestAcceptedMessage, int>(new(int.Parse(parts[4])), (int)MessageChannels.GameEvents);
+                        }
                         break;
 
                     case "cmd":

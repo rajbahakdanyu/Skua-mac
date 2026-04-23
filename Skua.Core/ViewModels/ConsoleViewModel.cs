@@ -43,7 +43,18 @@ public class Script{ public void ScriptMain(IScriptInterface Bot){";
             try
             {
                 object? o = _scriptManager.Compile($"{_source}{_snippetText}}}}}");
-                o!.GetType().GetMethod("ScriptMain")!.Invoke(o, new[] { IScriptInterface.Instance });
+                if (o is null)
+                {
+                    _dialogService.ShowMessageBox("Compilation returned null.", "Error");
+                    return;
+                }
+                var method = o.GetType().GetMethod("ScriptMain");
+                if (method is null)
+                {
+                    _dialogService.ShowMessageBox("Compiled type does not have a ScriptMain method.", "Error");
+                    return;
+                }
+                method.Invoke(o, new[] { IScriptInterface.Instance });
             }
             catch (Exception e)
             {

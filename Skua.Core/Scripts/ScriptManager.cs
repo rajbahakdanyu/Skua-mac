@@ -108,7 +108,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             bool needsConfig;
             lock (_configuredLock)
             {
-                needsConfig = _configured.TryGetValue(Config!.Storage, out bool b) && !b;
+                needsConfig = Config is not null && _configured.TryGetValue(Config.Storage, out bool b) && !b;
             }
 
             ManualResetEventSlim scriptReady = new(false);
@@ -222,10 +222,11 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 _ = Task.Run(() =>
                 {
                     scriptReady.Wait();
-                    Config!.Configure();
+                    Config?.Configure();
                     lock (_configuredLock)
                     {
-                        _configured[Config!.Storage] = true;
+                        if (Config is not null)
+                            _configured[Config.Storage] = true;
                     }
                 });
             }
