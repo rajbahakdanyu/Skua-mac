@@ -97,13 +97,17 @@ public class AvaloniaWindowService : IWindowService, IDisposable
                 WindowStartupLocation = WindowStartupLocation.CenterScreen
             };
 
-            window.Closed += (sender, e) =>
+            EventHandler? closedHandler = null;
+            closedHandler = (sender, e) =>
             {
+                window.Closed -= closedHandler;
                 _managedWindows.Remove(key);
                 if (window.DataContext is IDisposable disposable)
                     disposable.Dispose();
                 window.DataContext = null;
             };
+
+            window.Closed += closedHandler;
 
             _managedWindows.Add(key, window);
         });

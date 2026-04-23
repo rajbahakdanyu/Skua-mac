@@ -169,7 +169,12 @@ public class RuffleFlashUtil : IFlashUtil
 
     public void Dispose()
     {
-        _bridge?.Dispose();
+        if (_bridge != null)
+        {
+            _bridge.FlashCall -= OnFlashCall;
+            _bridge.Dispose();
+            _bridge = null;
+        }
         GC.SuppressFinalize(this);
     }
 }

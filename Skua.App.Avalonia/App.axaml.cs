@@ -68,22 +68,23 @@ public sealed partial class App : Application
 
     private async void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
     {
-        Services.GetRequiredService<ICaptureProxy>().Stop();
+        // Stop scripts first before disposing dependencies
+        try { await Ioc.Default.GetRequiredService<IScriptManager>().StopScript(); } catch { }
+        try { await ((IScriptInterfaceManager)_bot).StopTimerAsync(); } catch { }
 
-        await ((IAsyncDisposable)Services.GetRequiredService<IScriptBoost>()).DisposeAsync();
-        await ((IAsyncDisposable)Services.GetRequiredService<IScriptBotStats>()).DisposeAsync();
-        await ((IAsyncDisposable)Services.GetRequiredService<IScriptDrop>()).DisposeAsync();
-        await Ioc.Default.GetRequiredService<IScriptManager>().StopScript();
-        await ((IScriptInterfaceManager)_bot).StopTimerAsync();
+        try { Services.GetRequiredService<ICaptureProxy>().Stop(); } catch { }
+        try { await ((IAsyncDisposable)Services.GetRequiredService<IScriptBoost>()).DisposeAsync(); } catch { }
+        try { await ((IAsyncDisposable)Services.GetRequiredService<IScriptBotStats>()).DisposeAsync(); } catch { }
+        try { await ((IAsyncDisposable)Services.GetRequiredService<IScriptDrop>()).DisposeAsync(); } catch { }
 
-        Services.GetRequiredService<IFlashUtil>().Dispose();
+        try { Services.GetRequiredService<IFlashUtil>().Dispose(); } catch { }
 
-        _startup?.Dispose();
+        try { _startup?.Dispose(); } catch { }
         _startup = null;
 
-        WeakReferenceMessenger.Default.Cleanup();
-        WeakReferenceMessenger.Default.Reset();
-        StrongReferenceMessenger.Default.Reset();
+        try { WeakReferenceMessenger.Default.Cleanup(); } catch { }
+        try { WeakReferenceMessenger.Default.Reset(); } catch { }
+        try { StrongReferenceMessenger.Default.Reset(); } catch { }
     }
 
     private void StartUpdateChecks()

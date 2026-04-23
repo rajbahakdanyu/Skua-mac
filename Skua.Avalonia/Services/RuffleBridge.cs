@@ -568,7 +568,7 @@ public class RuffleBridge : IDisposable, IComponent
                 var json = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
                 try
                 {
-                    var doc = JsonDocument.Parse(json);
+                    using var doc = JsonDocument.Parse(json);
                     var root = doc.RootElement;
 
                     if (root.TryGetProperty("type", out var typeEl) && typeEl.GetString() == "flashcall")
@@ -596,6 +596,15 @@ public class RuffleBridge : IDisposable, IComponent
             }
         }
         catch (WebSocketException) { }
+        finally
+        {
+            // WebSocket disconnected — cancel all pending calls to unblock waiters
+            foreach (var kvp in _pendingCalls)
+            {
+                kvp.Value.TrySetCanceled();
+                _pendingCalls.TryRemove(kvp.Key, out _);
+            }
+        }
     }
 
     private static async Task HandleSocketProxy(HttpContext context)
@@ -684,10 +693,33 @@ public class RuffleBridge : IDisposable, IComponent
 
     public void Dispose()
     {
+        // 1. Cancel pending calls so CallFunction waiters unblock
+        foreach (var kvp in _pendingCalls)
+        {
+            kvp.Value.TrySetCanceled();
+            _pendingCalls.TryRemove(kvp.Key, out _);
+        }
+
+        // 2. Close WebSocket gracefully before stopping server
+        var ws = _commandSocket;
+        _commandSocket = null;
+        if (ws is { State: WebSocketState.Open })
+        {
+            try { ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "shutdown", CancellationToken.None).Wait(2000); }
+            catch { }
+        }
+
+        // 3. Cancel and stop server
         _cts?.Cancel();
-        _app?.StopAsync().Wait(TimeSpan.FromSeconds(5));
-        _app?.DisposeAsync().AsTask().Wait(TimeSpan.FromSeconds(5));
+        try { _app?.StopAsync().Wait(TimeSpan.FromSeconds(5)); }
+        catch { }
+        try { _app?.DisposeAsync().AsTask().Wait(TimeSpan.FromSeconds(5)); }
+        catch { }
+
+        // 4. Dispose resources
         _cts?.Dispose();
+        _wsSendLock.Dispose();
+
         Disposed?.Invoke(this, EventArgs.Empty);
         GC.SuppressFinalize(this);
     }

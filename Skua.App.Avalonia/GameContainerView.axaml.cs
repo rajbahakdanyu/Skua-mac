@@ -38,7 +38,7 @@ public partial class GameContainerView : UserControl
         string? browser = FindChromiumBrowser();
         if (browser != null)
         {
-            System.Diagnostics.Process.Start(browser, $"--allow-insecure-localhost \"{url}\"");
+            using var p = System.Diagnostics.Process.Start(browser, $"--allow-insecure-localhost \"{url}\"");
             return;
         }
         Ioc.Default.GetRequiredService<IProcessService>().OpenLink(url);
@@ -65,7 +65,7 @@ public partial class GameContainerView : UserControl
             {
                 try
                 {
-                    var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("which", cmd)
+                    using var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("which", cmd)
                         { RedirectStandardOutput = true, UseShellExecute = false });
                     string? result = p?.StandardOutput.ReadToEnd().Trim();
                     p?.WaitForExit();
