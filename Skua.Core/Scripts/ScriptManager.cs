@@ -337,6 +337,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
         HashSet<string> references = GetReferences();
         string final = ProcessSources(source, ref references);
+        final = PatchSourceForPlatform(final);
 
         // Debug: Check if final source is empty or contains no classes (disabled for performance)
 #if DEBUG_VERBOSE
@@ -501,6 +502,24 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         }
 
         return string.Join(Environment.NewLine, filteredLines).Trim();
+    }
+
+    /// <summary>
+    /// Patches script source to work on non-Windows platforms.
+    /// Replaces Windows-specific runtime checks that would fail on macOS/Linux.
+    /// </summary>
+    private static string PatchSourceForPlatform(string source)
+    {
+        if (OperatingSystem.IsWindows())
+            return source;
+
+        // OperatingSystem.IsWindowsVersionAtLeast(10) returns false on macOS,
+        // causing scripts to refuse to run. Replace with true.
+        // Order matters: replace negated form first to avoid double replacement.
+        source = source.Replace("!OperatingSystem.IsWindowsVersionAtLeast(10)", "false");
+        source = source.Replace("OperatingSystem.IsWindowsVersionAtLeast(10)", "true");
+
+        return source;
     }
 
     private void DiscoverAllIncludes(HashSet<string> references)
@@ -773,6 +792,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         Parallel.ForEach(includedFilesSnapshot, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, includedFile =>
         {
             string includeSource = File.ReadAllText(includedFile);
+            includeSource = PatchSourceForPlatform(includeSource);
             CheckScriptVersionRequirement(includeSource);
             List<string> deps = ExtractIncludeDependencies(includeSource);
             List<string> normalizedDeps = new();
@@ -897,6 +917,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         foreach (string newFile in newlyAddedFiles)
         {
             string includeSource = File.ReadAllText(newFile);
+            includeSource = PatchSourceForPlatform(includeSource);
             CheckScriptVersionRequirement(includeSource);
             string includeFileName = Path.GetFileNameWithoutExtension(newFile);
             using SHA256 sha256 = SHA256.Create();
@@ -1049,6 +1070,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             }
 
             string processedInclude = ProcessIncludeDirectives(includeSource, ref includeReferences);
+            processedInclude = PatchSourceForPlatform(processedInclude);
 
             Compiler includeCompiler = Ioc.Default.GetRequiredService<Compiler>();
             includeCompiler.AddDefaultReferencesAndNamespaces();
