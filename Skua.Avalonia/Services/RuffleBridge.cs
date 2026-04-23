@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -30,6 +31,14 @@ public class RuffleBridge : IDisposable, IComponent
     private int _callId;
     private WebSocket? _commandSocket;
     private readonly SemaphoreSlim _wsSendLock = new(1, 1);
+    private readonly Channel<(string function, object[] args)> _flashCallChannel =
+        Channel.CreateBounded<(string, object[])>(new BoundedChannelOptions(256)
+        {
+            FullMode = BoundedChannelFullMode.DropOldest,
+            SingleReader = true,
+            SingleWriter = true
+        });
+    private Thread? _flashCallThread;
 
     public event Action<string, object[]>? FlashCall;
     public event EventHandler? Disposed;
@@ -111,6 +120,15 @@ public class RuffleBridge : IDisposable, IComponent
 
         if (_app is null)
             throw new InvalidOperationException("Could not find an available port for the Ruffle bridge.");
+
+        // Start a dedicated thread for FlashCall event processing.
+        // This prevents thread pool exhaustion when handlers call back into Flash.
+        _flashCallThread = new Thread(FlashCallConsumer)
+        {
+            IsBackground = true,
+            Name = "FlashCallConsumer"
+        };
+        _flashCallThread.Start();
     }
 
     private void MapEndpoints(WebApplication app)
@@ -422,7 +440,7 @@ public class RuffleBridge : IDisposable, IComponent
         };
     }
 
-    public string? CallFunction(string invokeXml)
+    public string? CallFunction(string invokeXml, CancellationToken cancellationToken = default)
     {
         string name;
         object[] args;
@@ -444,6 +462,12 @@ public class RuffleBridge : IDisposable, IComponent
         var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
         _pendingCalls[id] = tcs;
 
+        // Link caller's token with bridge lifetime token for combined cancellation
+        using var linkedCts = _cts?.Token is CancellationToken bridgeToken
+            ? CancellationTokenSource.CreateLinkedTokenSource(bridgeToken, cancellationToken)
+            : CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        linkedCts.CancelAfter(TimeSpan.FromSeconds(5));
+
         // Push command over WebSocket
         try
         {
@@ -451,7 +475,7 @@ public class RuffleBridge : IDisposable, IComponent
             var bytes = Encoding.UTF8.GetBytes(msg);
             if (_commandSocket is { State: WebSocketState.Open } ws)
             {
-                _wsSendLock.Wait();
+                _wsSendLock.Wait(linkedCts.Token);
                 try
                 {
                     ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None)
@@ -465,6 +489,11 @@ public class RuffleBridge : IDisposable, IComponent
                 return null;
             }
         }
+        catch (OperationCanceledException)
+        {
+            _pendingCalls.TryRemove(id, out _);
+            return null;
+        }
         catch
         {
             _pendingCalls.TryRemove(id, out _);
@@ -473,11 +502,10 @@ public class RuffleBridge : IDisposable, IComponent
 
         try
         {
-            if (tcs.Task.Wait(TimeSpan.FromSeconds(30)))
-            {
-                return tcs.Task.Result;
-            }
+            tcs.Task.Wait(linkedCts.Token);
+            return tcs.Task.Result;
         }
+        catch (OperationCanceledException) { }
         catch { }
         finally
         {
@@ -581,7 +609,7 @@ public class RuffleBridge : IDisposable, IComponent
                         if (string.IsNullOrEmpty(function)) continue;
                         var argsElement = el.Element("arguments");
                         object[] args = argsElement?.Elements().Select(x => ParseFlashArg(x)).ToArray() ?? Array.Empty<object>();
-                        ThreadPool.QueueUserWorkItem(_ => FlashCall?.Invoke(function, args));
+                        _flashCallChannel.Writer.TryWrite((function, args));
                     }
                     else if (root.TryGetProperty("id", out var idEl))
                     {
@@ -605,6 +633,35 @@ public class RuffleBridge : IDisposable, IComponent
                 _pendingCalls.TryRemove(kvp.Key, out _);
             }
         }
+    }
+
+    /// <summary>
+    /// Dedicated consumer thread for FlashCall events from the browser.
+    /// Processes events sequentially on a single thread to prevent thread pool exhaustion
+    /// when handlers call back into Flash (blocking on CallFunction).
+    /// </summary>
+    private void FlashCallConsumer()
+    {
+        var reader = _flashCallChannel.Reader;
+        try
+        {
+            while (reader.WaitToReadAsync().AsTask().GetAwaiter().GetResult())
+            {
+                while (reader.TryRead(out var item))
+                {
+                    try
+                    {
+                        FlashCall?.Invoke(item.function, item.args);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Trace.WriteLine($"FlashCall handler error: {ex.Message}");
+                    }
+                }
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (ChannelClosedException) { }
     }
 
     private static async Task HandleSocketProxy(HttpContext context)
@@ -693,14 +750,17 @@ public class RuffleBridge : IDisposable, IComponent
 
     public void Dispose()
     {
-        // 1. Cancel pending calls so CallFunction waiters unblock
+        // 1. Stop FlashCall consumer thread
+        _flashCallChannel.Writer.TryComplete();
+
+        // 2. Cancel pending calls so CallFunction waiters unblock
         foreach (var kvp in _pendingCalls)
         {
             kvp.Value.TrySetCanceled();
             _pendingCalls.TryRemove(kvp.Key, out _);
         }
 
-        // 2. Close WebSocket gracefully before stopping server
+        // 3. Close WebSocket gracefully before stopping server
         var ws = _commandSocket;
         _commandSocket = null;
         if (ws is { State: WebSocketState.Open })
@@ -709,14 +769,14 @@ public class RuffleBridge : IDisposable, IComponent
             catch { }
         }
 
-        // 3. Cancel and stop server
+        // 4. Cancel and stop server
         _cts?.Cancel();
         try { _app?.StopAsync().Wait(TimeSpan.FromSeconds(5)); }
         catch { }
         try { _app?.DisposeAsync().AsTask().Wait(TimeSpan.FromSeconds(5)); }
         catch { }
 
-        // 4. Dispose resources
+        // 5. Dispose resources
         _cts?.Dispose();
         _wsSendLock.Dispose();
 

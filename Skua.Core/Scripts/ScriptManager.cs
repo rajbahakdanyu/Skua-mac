@@ -123,8 +123,17 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             Thread scriptThread = new(() =>
             {
                 Exception? exception = null;
-                ScriptCts = new();
-                scriptReady.Set();
+                try
+                {
+                    ScriptCts = new();
+                    scriptReady.Set();
+                }
+                catch
+                {
+                    scriptReady.Set(); // Always signal so config task never hangs
+                    ScriptRunning = false;
+                    return;
+                }
 
                 try
                 {
@@ -198,7 +207,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
                     AuraMonitor.StopMonitoring();
                     UnloadPreviousScript();
-                    ScriptCts?.Dispose();
+                    try { ScriptCts?.Dispose(); } catch (ObjectDisposedException) { }
                     ScriptCts = null;
                     StrongReferenceMessenger.Default.Send<ScriptStoppedMessage, int>((int)MessageChannels.ScriptStatus);
                     ScriptRunning = false;
@@ -221,14 +230,22 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             {
                 _ = Task.Run(() =>
                 {
-                    scriptReady.Wait();
-                    Config?.Configure();
-                    lock (_configuredLock)
+                    try
                     {
-                        if (Config is not null)
-                            _configured[Config.Storage] = true;
+                        scriptReady.Wait(TimeSpan.FromSeconds(10));
+                        Config?.Configure();
+                        lock (_configuredLock)
+                        {
+                            if (Config is not null)
+                                _configured[Config.Storage] = true;
+                        }
                     }
+                    finally { scriptReady.Dispose(); }
                 });
+            }
+            else
+            {
+                scriptReady.Dispose();
             }
 
             return null;
@@ -262,11 +279,13 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             _stoppedByScript = true;
         }
 
-        ScriptCts?.Cancel();
+        try { ScriptCts?.Cancel(); }
+        catch (ObjectDisposedException) { }
 
         if (Thread.CurrentThread.Name == "Script Thread")
         {
-            ScriptCts?.Token.ThrowIfCancellationRequested();
+            try { ScriptCts?.Token.ThrowIfCancellationRequested(); }
+            catch (ObjectDisposedException) { }
             return;
         }
 

@@ -96,10 +96,16 @@ public class RuffleFlashUtil : IFlashUtil
             }
             req.Append("</invoke>");
 
-            string? result = _bridge?.CallFunction(req.ToString());
+            // Pass the script CTS token so CallFunction unblocks immediately on script stop
+            var token = _lazyManager.Value.ScriptCts?.Token ?? CancellationToken.None;
+            string? result = _bridge?.CallFunction(req.ToString(), token);
             if (string.IsNullOrEmpty(result)) return default;
             XElement el = XElement.Parse(result);
             return el.FirstNode is null ? default : Convert.ChangeType(el.FirstNode.ToString(), type);
+        }
+        catch (OperationCanceledException)
+        {
+            return default;
         }
         catch (Exception e)
         {
