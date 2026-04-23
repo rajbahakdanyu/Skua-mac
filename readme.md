@@ -8,11 +8,18 @@
 
 ### About Skua
 
-Skua is the successor to [RBot](https://github.com/rodit/RBot) (originally made by "[rodit](https://github.com/rodit)"), now remade and rebranded by [BrenoHenrike](https://github.com/BrenoHenrike/), with the help of [Lord Exelot](https://github.com/BrenoHenrike/), and a handful of scripters. It is a third-party client made by the people mentioned above. It also has many "features" and quirks. Overall, it will make this glorified flash game on steroids a piece of cake.
+Skua is the successor to [RBot](https://github.com/rodit/RBot) (originally made by "[rodit](https://github.com/rodit)"), now remade and rebranded by [BrenoHenrike](https://github.com/BrenoHenrike/), with the help of [Lord Exelot](https://github.com/BrenoHenrike/), and a handful of scripters. It is a scriptable C# bot for AdventureQuest Worlds that makes this glorified flash game on steroids a piece of cake.
 
-### Do we store information online?
+Skua runs **cross-platform** using [Avalonia UI](https://avaloniaui.net/) and [Ruffle](https://ruffle.rs/) (a WebAssembly Flash emulator). Supported on **macOS** (Apple Silicon & Intel), **Linux**, and **Windows** — no Wine, CrossOver, or Flash installation required.
 
-The *only* things that get recorded are: the auto-generated number **(not your actual game user ID)** to identify you, the number of scripts run (stopped & started), and the start and stop timestamps. This can be completely opted out of when first running a script, or you can edit the text file ***“DataCollectionSettings”*** in your `Documents\Skua > DataCollectionSettings.txt`. If you make it look as shown below, it will send absolutely nothing 👍
+### Data Collection
+
+The *only* things that get recorded are: the auto-generated number **(not your actual game user ID)** to identify you, the number of scripts run (stopped & started), and the start and stop timestamps. This can be completely opted out of when first running a script, or you can edit the `DataCollectionSettings.txt` file in your Skua data folder:
+
+- **macOS/Linux:** `~/.skua/DataCollectionSettings.txt`
+- **Windows:** `Documents\Skua\DataCollectionSettings.txt`
+
+To opt out completely:
 
 ```txt
 UserID: null

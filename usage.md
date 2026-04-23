@@ -2,21 +2,40 @@
 
 ## Installation & Setup
 
-1. [.net 10 SDK (x64) installer](<https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-10.0.102-windows-x64-installer>)
+### macOS
 
-2. [CleanFlash](<https://github.com/wtffidy/CleanFlashBackUp/blob/main/CleanFlash_34.0.0.175_Installer.exe>) (and for it to be installed properly do this: [CleanFlash Installation](https://imgur.com/ztsLYZ1))
+1. Install [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+2. Install a Chromium-based browser (Chrome, Brave, or Edge) if you don't already have one
+3. Build and run Skua:
+   ```bash
+   git clone https://github.com/auqw/Skua.git
+   cd Skua
+   ./build-macos.sh
+   ./publish/osx-arm64/Skua.App.Avalonia
+   ```
 
-3. Install both `.net 10 SDK` and `CleanFlash` before continuing to install `Skua`.
+See [MACOS.md](./MACOS.md) for detailed macOS instructions.
 
-4. [Skua Latest Release](<https://github.com/auqw/Skua/releases/latest>)
+### Windows
 
-## Once everything is properly installed and working
+1. Install [.NET 10 SDK (x64)](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-10.0.102-windows-x64-installer)
+2. Install a Chromium-based browser (Chrome, Brave, or Edge) if you don't already have one
+3. Build and run Skua:
+   ```powershell
+   git clone https://github.com/auqw/Skua.git
+   cd Skua
+   dotnet run --project Skua.App.Avalonia/Skua.App.Avalonia.csproj -c Release
+   ```
 
-1. Open `Skua` or the `Skua Manager` (these will be placed on your desktop by default.)
+See [BUILD.md](./BUILD.md) for more build options.
 
-2. Close the Changelog that appears, if Skua isnt showing its more then likely in the system tray (little `^` in the bottom right. just RightClick it and "show client").
+## Getting Started
 
-3. Before you start using scripts it is strongly **recomended** to setup your `CoreBot` Options
+1. Launch Skua. A Chromium browser window will open automatically with the game.
+
+2. Log in to AQW in the browser window.
+
+3. Before you start using scripts it is strongly **recommended** to set up your `CoreBot` Options
 
     - Start by going to `Options > CoreBots` and set the Following:
         - Tab 1 (`Loadout`):
@@ -55,7 +74,7 @@
     - To start a script you can do one of two ways:
 
         - (Recommended) Press `Search Scripts` (if no scripts appear press the `⟳` button) then you can search for / load a script from here.
-        - Press `Load script`, this will take you to the `%APPDATA% > Skua > Scripts` folder.
+        - Press `Load script`, this will open your scripts folder.
 
     - Once a script is loaded press `Start` on the `scripts` window.
 
@@ -148,16 +167,13 @@
     - **Current** gets the current cell and pad you're in.
     - **Jump** Jumps to selected cell and pad.
 
-### How to install the Plugin for Skua
+### How to install a Plugin for Skua
 
-1. Download the .dll file from the link in the pins.
-2. Locate the file on your PC (usually in your `/Downloads/` folder).
-3. Copy (`CTRL+C`) or Cut (`CTRL+X`) the .dll file.
-4. Go to the Skua plugin directory in your Documents (example: `%APPDATA%\Skua\plugins\`)
-5. Paste (`CTRL+V`) the file.
-6. Restart any Skua instances so you can see the plugin.
-7. Within the Skua window, go to plugins (last option from the left) and then `Plugin Name`.
-8. Repeat step 7 every time you wish to access the plugin.
-
+1. Download the `.dll` file.
+2. Copy it to the Skua plugins directory:
+   - **macOS/Linux:** `~/.skua/plugins/`
+   - **Windows:** `%APPDATA%\Skua\plugins\`
+3. Restart Skua so the plugin is loaded.
+4. Within the Skua window, go to `Plugins` and select the plugin.
 
 ### ***For further information or questions, Join the [Discord](https://discord.gg/pearlharbor)***
