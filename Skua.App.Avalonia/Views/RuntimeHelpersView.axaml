@@ -54,8 +54,8 @@
                 </WrapPanel>
                 <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,4">
                     <Button Content="Toggle" Command="{Binding BoostsViewModel.ToggleBoostsCommand}" />
-                    <Button Content="Set IDs (Inv)" Command="{Binding BoostsViewModel.SetBoostIDsCommand}" CommandParameter="False" />
-                    <Button Content="Set IDs (Bank)" Command="{Binding BoostsViewModel.SetBoostIDsCommand}" CommandParameter="True" />
+                    <Button x:Name="SetIdsInvBtn" Content="Set IDs (Inv)" Command="{Binding BoostsViewModel.SetBoostIDsCommand}" />
+                    <Button x:Name="SetIdsBankBtn" Content="Set IDs (Bank)" Command="{Binding BoostsViewModel.SetBoostIDsCommand}" />
                 </StackPanel>
             </StackPanel>
         </Grid>
