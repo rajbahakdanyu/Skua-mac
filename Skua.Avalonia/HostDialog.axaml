@@ -1,0 +1,4 @@
+<Window xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Skua.Avalonia.HostDialog" Title="{Binding Title}" Width="400" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" Topmost="True" CanResize="False">
+    <ContentControl Content="{Binding}" />
+</Window>

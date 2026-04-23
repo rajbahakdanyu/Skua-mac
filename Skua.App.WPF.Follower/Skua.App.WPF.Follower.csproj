@@ -1,26 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-      <UseWindowsForms>true</UseWindowsForms>
-      <UseWPF>true</UseWPF>
-    <Nullable>enable</Nullable>
-    <UseWPF>true</UseWPF>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <UseWindowsForms>true</UseWindowsForms>
+        <UseWPF>true</UseWPF>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="..\Skua.App.WPF\Assemblies\AxInterop.ShockwaveFlashObjects.dll" />
-    <None Include="..\Skua.App.WPF\Assemblies\corehook32.dll" />
-    <None Include="..\Skua.App.WPF\Assemblies\corehook64.dll" />
-    <None Include="..\Skua.App.WPF\Assemblies\coreload32.dll" />
-    <None Include="..\Skua.App.WPF\Assemblies\coreload64.dll" />
-    <None Include="..\Skua.App.WPF\Assemblies\Interop.ShockwaveFlashObjects.dll" />
-    <None Include="..\Skua.App.WPF\Assemblies\System.IO.FileSystem.Watcher.dll" />
-    <None Include="..\Skua.AS3\skua\bin\skua.swf" Link="skua.swf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+    <ItemGroup>
+        <None Include="..\Skua.App.WPF\Assemblies\AxInterop.ShockwaveFlashObjects.dll" />
+        <None Include="..\Skua.App.WPF\Assemblies\corehook32.dll" />
+        <None Include="..\Skua.App.WPF\Assemblies\corehook64.dll" />
+        <None Include="..\Skua.App.WPF\Assemblies\coreload32.dll" />
+        <None Include="..\Skua.App.WPF\Assemblies\coreload64.dll" />
+        <None Include="..\Skua.App.WPF\Assemblies\Interop.ShockwaveFlashObjects.dll" />
+        <None Include="..\Skua.App.WPF\Assemblies\System.IO.FileSystem.Watcher.dll" />
+        <None Include="..\Skua.AS3\skua\bin\skua.swf" Link="skua.swf">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Caseless.Fody" Version="1.9.1" />
@@ -38,12 +37,12 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Skua.App.WPF\Skua.App.WPF.csproj" />
-      <ProjectReference Include="..\Skua.Core.Interfaces\Skua.Core.Interfaces.csproj" />
-      <ProjectReference Include="..\Skua.Core.Models\Skua.Core.Models.csproj" />
-      <ProjectReference Include="..\Skua.Core.Utils\Skua.Core.Utils.csproj" />
-      <ProjectReference Include="..\Skua.Core\Skua.Core.csproj" />
-      <ProjectReference Include="..\Skua.WPF\Skua.WPF.csproj" />
+        <ProjectReference Include="..\Skua.App.WPF\Skua.App.WPF.csproj" />
+        <ProjectReference Include="..\Skua.Core.Interfaces\Skua.Core.Interfaces.csproj" />
+        <ProjectReference Include="..\Skua.Core.Models\Skua.Core.Models.csproj" />
+        <ProjectReference Include="..\Skua.Core.Utils\Skua.Core.Utils.csproj" />
+        <ProjectReference Include="..\Skua.Core\Skua.Core.csproj" />
+        <ProjectReference Include="..\Skua.WPF\Skua.WPF.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -80,7 +79,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Assemblies\" />
+        <Folder Include="Assemblies\" />
     </ItemGroup>
 
 </Project>

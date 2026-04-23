@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core" mc:Ignorable="d" x:Class="Skua.App.Avalonia.MainMenuView" d:DesignHeight="30" d:DesignWidth="960">
+    <DockPanel Height="30" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}">
+        <!-- Bot Window button -->
+        <Button Command="{Binding ShowBotWindowCommand}" Content="+" DockPanel.Dock="Left" Padding="8,2" Margin="2" />
+
+        <!-- Jump popup -->
+        <ToggleButton x:Name="JumpToggle" Content="Jump" DockPanel.Dock="Left" Padding="8,2" Margin="2" />
+
+        <!-- Auto popup -->
+        <ToggleButton x:Name="AutoToggle" Content="Auto" DockPanel.Dock="Left" Padding="8,2" Margin="2" />
+
+        <!-- Plugins Menu -->
+        <Menu DockPanel.Dock="Left" VerticalAlignment="Center">
+            <MenuItem Header="Plugins" ItemsSource="{Binding Plugins}">
+                <MenuItem.Styles>
+                    <Style Selector="MenuItem" x:DataType="vm:MainMenuItemViewModel">
+                        <Setter Property="Header" Value="{Binding Header}" />
+                        <Setter Property="Command" Value="{Binding Command}" />
+                    </Style>
+                </MenuItem.Styles>
+            </MenuItem>
+        </Menu>
+
+        <!-- Main Menu Items -->
+        <Menu DockPanel.Dock="Left" ItemsSource="{Binding MainMenuItems}" VerticalAlignment="Center">
+            <Menu.Styles>
+                <Style Selector="MenuItem" x:DataType="vm:MainMenuItemViewModel">
+                    <Setter Property="Header" Value="{Binding Header}" />
+                    <Setter Property="Command" Value="{Binding Command}" />
+                    <Setter Property="ItemsSource" Value="{Binding SubItems}" />
+                </Style>
+            </Menu.Styles>
+        </Menu>
+    </DockPanel>
+</UserControl>

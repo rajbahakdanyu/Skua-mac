@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core" x:Class="Skua.App.Avalonia.Views.ScriptStatsView" x:DataType="vm:ScriptStatsViewModel">
+    <Grid RowDefinitions="*,Auto" Margin="8">
+        <ScrollViewer Grid.Row="0">
+            <StackPanel Spacing="6">
+                <TextBlock Text="Script Statistics" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8" />
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Kills" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ScriptStats.Kills}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Deaths" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ScriptStats.Deaths}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Quests Accepted" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ScriptStats.QuestsAccepted}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Quests Completed" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ScriptStats.QuestsCompleted}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Drops" />
+                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ScriptStats.Drops}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Relogins" />
+                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding ScriptStats.Relogins}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Time" />
+                    <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding ScriptStats.Time}" HorizontalAlignment="Right" />
+                    <Separator Grid.Row="7" Grid.ColumnSpan="2" Margin="0,4" />
+                    <TextBlock Grid.Row="8" Grid.Column="0" Text="Inventory" />
+                    <TextBlock Grid.Row="8" Grid.Column="1" HorizontalAlignment="Right">
+                        <Run Text="{Binding ScriptStats.InventoryFilledSpace}" />
+/                        <Run Text="{Binding ScriptStats.InventorySpace}" />
+                    </TextBlock>
+                    <TextBlock Grid.Row="9" Grid.Column="0" Text="Bank" />
+                    <TextBlock Grid.Row="9" Grid.Column="1" HorizontalAlignment="Right">
+                        <Run Text="{Binding ScriptStats.BankFilledSpace}" />
+/                        <Run Text="{Binding ScriptStats.BankSpace}" />
+                    </TextBlock>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+            <Button Content="Reset" Command="{Binding ResetStatsCommand}" />
+            <Button Content="Get Space" Command="{Binding GetSpaceCommand}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

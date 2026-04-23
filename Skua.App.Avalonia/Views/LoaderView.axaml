@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core" x:Class="Skua.App.Avalonia.Views.LoaderView" x:DataType="vm:LoaderViewModel">
+    <Grid RowDefinitions="Auto,*,Auto,Auto" Margin="8">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,8">
+            <TextBox Grid.Column="0" Text="{Binding InputIDs}" Watermark="Enter IDs (comma separated)" />
+            <ComboBox Grid.Column="1" SelectedIndex="{Binding SelectedIndex}" Margin="4,0" MinWidth="80">
+                <ComboBoxItem Content="Shop" />
+                <ComboBoxItem Content="Quest" />
+            </ComboBox>
+            <Button Grid.Column="2" Content="Load" Command="{Binding LoadCommand}" />
+        </Grid>
+        <ListBox Grid.Row="1" ItemsSource="{Binding QuestIDs}" SelectionMode="Multiple" x:Name="QuestsList">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock Grid.Row="2" Text="{Binding ProgressReport}" Margin="0,4" IsVisible="{Binding IsLoading}" />
+        <WrapPanel Grid.Row="3" Orientation="Horizontal" Margin="0,8,0,0">
+            <Button x:Name="UpdateAllBtn" Content="Update All" Command="{Binding UpdateQuestsCommand}" Margin="0,0,4,4" />
+            <Button Content="Get Quests" Command="{Binding GetQuestsCommand}" Margin="0,0,4,4" />
+            <Button Content="Cancel" Command="{Binding CancelQuestLoadCommand}" Margin="0,0,4,4" />
+            <StackPanel Orientation="Horizontal" Margin="8,0,0,4">
+                <TextBox Text="{Binding QuestRange}" Watermark="Range (e.g. 1-100)" Width="120" />
+                <Button Content="Update Range" Command="{Binding UpdateQuestsRangeCommand}" Margin="4,0,0,0" />
+            </StackPanel>
+        </WrapPanel>
+    </Grid>
+</UserControl>

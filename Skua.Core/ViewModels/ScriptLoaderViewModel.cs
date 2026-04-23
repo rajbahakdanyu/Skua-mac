@@ -93,7 +93,7 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
         ToggleScriptEnabled = false;
         if (string.IsNullOrWhiteSpace(ScriptManager.LoadedScript))
         {
-            _dialogService.ShowMessageBox("No script loaded.", "Scripts");
+            await _dialogService.ShowMessageBoxAsync("No script loaded.", "Scripts");
             ToggleScriptEnabled = true;
             return;
         }
@@ -116,12 +116,12 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
         {
             if (ex is ScriptVersionException versionEx)
             {
-                _dialogService.ShowMessageBox($"Error while starting script:\r\n{ex.Message}", "Version Error");
+                await _dialogService.ShowMessageBoxAsync($"Error while starting script:\r\n{ex.Message}", "Version Error");
                 _processService.OpenLink(versionEx.UpdateUrl);
             }
             else
             {
-                _dialogService.ShowMessageBox($"Error while starting script:\r\n{ex.Message}", "Script Error");
+                await _dialogService.ShowMessageBoxAsync($"Error while starting script:\r\n{ex.Message}", "Script Error");
             }
             ScriptStatus = "[Error]";
             ScriptErrorToolTip = $"Error while starting script:\r\n{ex}";
@@ -134,11 +134,11 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
     }
 
     [RelayCommand]
-    private void LoadScript(string? path = null)
+    private async Task LoadScript(string? path = null)
     {
         if (string.IsNullOrWhiteSpace(path))
         {
-            path = _fileDialog.OpenFile(_scriptPath, "Skua Scripts (*.cs)|*.cs");
+            path = await _fileDialog.OpenFileAsync(_scriptPath, "Skua Scripts (*.cs)|*.cs");
             if (path is null)
                 return;
         }
@@ -162,13 +162,13 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
     {
         if (string.IsNullOrWhiteSpace(ScriptManager.LoadedScript))
         {
-            _dialogService.ShowMessageBox("No script is currently loaded. Please load a script to edit its options.", "No Script Loaded");
+            await _dialogService.ShowMessageBoxAsync("No script is currently loaded. Please load a script to edit its options.", "No Script Loaded");
             return;
         }
 
         if (ScriptManager.ScriptRunning)
         {
-            _dialogService.ShowMessageBox("Script currently running. Stop the script to change its options.", "Script Running");
+            await _dialogService.ShowMessageBoxAsync("Script currently running. Stop the script to change its options.", "Script Running");
             return;
         }
 
@@ -176,14 +176,14 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
         {
             object compiled = await Task.Run(() => ScriptManager.Compile(File.ReadAllText(ScriptManager.LoadedScript))!);
             ScriptManager.LoadScriptConfig(compiled);
-            if (ScriptManager.Config!.Options.Count > 0 || ScriptManager.Config.MultipleOptions.Count > 0)
+            if (ScriptManager.Config is not null && (ScriptManager.Config.Options.Count > 0 || ScriptManager.Config.MultipleOptions.Count > 0))
                 ScriptManager.Config.Configure();
             else
-                _dialogService.ShowMessageBox("The loaded script has no options to configure.", "No Options");
+                await _dialogService.ShowMessageBoxAsync("The loaded script has no options to configure.", "No Options");
         }
         catch (Exception ex)
         {
-            _dialogService.ShowMessageBox($"Script cannot be configured as it has compilation errors:\r\n{ex}", "Script Error");
+            await _dialogService.ShowMessageBoxAsync($"Script cannot be configured as it has compilation errors:\r\n{ex}", "Script Error");
         }
     }
 
@@ -208,7 +208,7 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
                 startNew = true;
             }
 
-            DialogResult dialogResult = _dialogService.ShowMessageBox(runningScriptMessage, "Script Error", "No", "Yes");
+            DialogResult dialogResult = await _dialogService.ShowMessageBoxAsync(runningScriptMessage, "Script Error", "No", "Yes");
 
             if (dialogResult.Text == "Yes")
             {

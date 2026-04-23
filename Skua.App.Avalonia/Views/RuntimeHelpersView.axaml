@@ -1,0 +1,63 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core" x:Class="Skua.App.Avalonia.Views.RuntimeHelpersView" x:DataType="vm:RuntimeHelpersViewModel">
+    <Grid ColumnDefinitions="*,*" Margin="8">
+        <!-- Left: Drops -->
+        <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto,Auto" Margin="0,0,4,0">
+            <TextBlock Grid.Row="0" Text="Pickup Drops" FontWeight="SemiBold" Margin="0,0,0,4" />
+            <ListBox Grid.Row="1" ItemsSource="{Binding ToPickupDropsViewModel.ToPickup}" SelectionMode="Multiple" x:Name="DropsListBox" />
+            <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,4">
+                <TextBox Grid.Column="0" Text="{Binding ToPickupDropsViewModel.AddDropInput}" Watermark="Item name or ID (use | to separate)" />
+                <Button Grid.Column="1" Content="Add" Command="{Binding ToPickupDropsViewModel.AddDropCommand}" Margin="4,0,0,0" />
+            </Grid>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="4">
+                <Button Content="Remove All" Command="{Binding ToPickupDropsViewModel.RemoveAllDropsCommand}" />
+                <Button Content="Toggle" Command="{Binding ToPickupDropsViewModel.ToggleDropsCommand}" />
+                <CheckBox Content="Reject Others" IsChecked="{Binding ToPickupDropsViewModel.Drops.RejectElse}" />
+                <CheckBox Content="AC Drops" IsChecked="{Binding ToPickupDropsViewModel.Options.AcceptACDrops}" />
+                <Button Content="Notify" Command="{Binding ToPickupDropsViewModel.OpenNotifyDropCommand}" />
+            </StackPanel>
+        </Grid>
+        <!-- Right: Quests + Boosts -->
+        <Grid Grid.Column="1" RowDefinitions="*,Auto" Margin="4,0,0,0">
+            <!-- Quests -->
+            <Grid Grid.Row="0" RowDefinitions="Auto,*,Auto,Auto">
+                <TextBlock Grid.Row="0" Text="Registered Quests" FontWeight="SemiBold" Margin="0,0,0,4" />
+                <ListBox Grid.Row="1" ItemsSource="{Binding RegisteredQuestsViewModel.CurrentAutoQuests}" SelectionMode="Multiple" x:Name="QuestsListBox">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <Run Text="Quest " />
+                                <Run Text="{Binding QuestId}" />
+                                <Run Text=" (Reward: " />
+                                <Run Text="{Binding RewardId}" />
+                                <Run Text=")" />
+                            </TextBlock>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Margin="0,4">
+                    <TextBox Grid.Column="0" Text="{Binding RegisteredQuestsViewModel.AddQuestInput}" Watermark="Quest IDs" />
+                    <TextBox Grid.Column="1" Text="{Binding RegisteredQuestsViewModel.RewardIdInput}" Watermark="Reward ID" Width="80" Margin="4,0" />
+                    <Button Grid.Column="2" Content="Add" Command="{Binding RegisteredQuestsViewModel.AddQuestCommand}" />
+                </Grid>
+                <Button Grid.Row="3" Content="Remove All" Command="{Binding RegisteredQuestsViewModel.RemoveAllQuestsCommand}" />
+            </Grid>
+            <!-- Boosts -->
+            <StackPanel Grid.Row="1" Margin="0,8,0,0">
+                <TextBlock Text="Boosts" FontWeight="SemiBold" Margin="0,0,0,4" />
+                <WrapPanel Orientation="Horizontal">
+                    <CheckBox Content="Class" IsChecked="{Binding BoostsViewModel.Boosts.UseClassBoost}" Margin="0,0,8,0" />
+                    <CheckBox Content="Gold" IsChecked="{Binding BoostsViewModel.Boosts.UseGoldBoost}" Margin="0,0,8,0" />
+                    <CheckBox Content="XP" IsChecked="{Binding BoostsViewModel.Boosts.UseExperienceBoost}" Margin="0,0,8,0" />
+                    <CheckBox Content="Rep" IsChecked="{Binding BoostsViewModel.Boosts.UseReputationBoost}" />
+                </WrapPanel>
+                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,4">
+                    <Button Content="Toggle" Command="{Binding BoostsViewModel.ToggleBoostsCommand}" />
+                    <Button x:Name="SetIdsInvBtn" Content="Set IDs (Inv)" Command="{Binding BoostsViewModel.SetBoostIDsCommand}" />
+                    <Button x:Name="SetIdsBankBtn" Content="Set IDs (Bank)" Command="{Binding BoostsViewModel.SetBoostIDsCommand}" />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core" mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="800" x:Class="Skua.App.Avalonia.Views.ScriptRepoView">
+    <Grid Margin="8" RowDefinitions="Auto,*,Auto">
+        <!-- Toolbar -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,6">
+            <Button Command="{Binding UpdateAllCommand}" Content="Update All" DockPanel.Dock="Left" Margin="0,0,4,0" IsEnabled="{Binding !IsBusy}" />
+            <Button Command="{Binding DownloadAllCommand}" Content="Download All" DockPanel.Dock="Left" Margin="4,0" IsEnabled="{Binding !IsBusy}" />
+            <Button Command="{Binding RefreshScriptsCommand}" Content="Refresh" DockPanel.Dock="Right" Margin="4,0,0,0" IsEnabled="{Binding !IsBusy}" />
+            <TextBox x:Name="SearchBox" Watermark="Search scripts..." Margin="4,0" TextChanged="SearchBox_TextChanged" />
+        </DockPanel>
+
+        <!-- Script List -->
+        <ListBox Grid.Row="1" ItemsSource="{Binding Scripts}" SelectedItem="{Binding SelectedItem}" SelectionMode="Single">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid ColumnDefinitions="200,*,80,70" Margin="4,2">
+                        <TextBlock Grid.Column="0" Text="{Binding Info.Name}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding Info.Description}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="8,0" Opacity="0.7" />
+                        <TextBlock Grid.Column="2" Text="{Binding Downloaded, StringFormat='DL: {0}'}" VerticalAlignment="Center" FontSize="11" />
+                        <TextBlock Grid.Column="3" Text="{Binding Outdated, StringFormat='Old: {0}'}" VerticalAlignment="Center" FontSize="11" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Status Bar -->
+        <DockPanel Grid.Row="2" Margin="0,6,0,0">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                <TextBlock Text="Scripts: " />
+                <TextBlock Text="{Binding BotScriptQuantity}" Margin="0,0,12,0" />
+                <TextBlock Text="Downloaded: " />
+                <TextBlock Text="{Binding DownloadedQuantity}" />
+                <TextBlock Text="/" />
+                <TextBlock Text="{Binding ScriptQuantity}" Margin="0,0,12,0" />
+                <TextBlock Text="Outdated: " />
+                <TextBlock Text="{Binding OutdatedQuantity}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" Spacing="4">
+                <Button Content="Download" Command="{Binding DownloadCommand}" IsEnabled="{Binding !IsBusy}" Padding="12,4" />
+                <Button Content="Delete" Command="{Binding DeleteCommand}" IsEnabled="{Binding !IsBusy}" Padding="12,4" />
+                <Button Content="Cancel" Command="{Binding CancelTaskCommand}" Padding="12,4" />
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+</UserControl>

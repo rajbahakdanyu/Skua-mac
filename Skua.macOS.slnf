@@ -1,0 +1,14 @@
+{
+  "solution": {
+    "path": "Skua.sln",
+    "projects": [
+      "Skua.Core\\Skua.Core.csproj",
+      "Skua.Core.Interfaces\\Skua.Core.Interfaces.csproj",
+      "Skua.Core.Models\\Skua.Core.Models.csproj",
+      "Skua.Core.Utils\\Skua.Core.Utils.csproj",
+      "Skua.Core.Generators\\Skua.Core.Generators.csproj",
+      "Skua.Avalonia\\Skua.Avalonia.csproj",
+      "Skua.App.Avalonia\\Skua.App.Avalonia.csproj"
+    ]
+  }
+}

@@ -8,9 +8,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StartupObject>Skua.App.WPF.Program</StartupObject>
-    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
     <WithCulture>false</WithCulture>
-    <NeutralLanguage>en</NeutralLanguage>
+    <NeutralLanguage>en-US</NeutralLanguage>
     <Platforms>AnyCPU;x64;x86</Platforms>
     <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
     <Company>Skua</Company>
@@ -31,7 +31,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="AdvancedSkills.json">
-    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Resource Include="SkuaIcon.ico" />
   </ItemGroup>
@@ -42,7 +42,7 @@
     </None>
   </ItemGroup>
 
-    <ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Caseless.Fody" Version="1.9.1" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
@@ -94,34 +94,34 @@
     </None>
   </ItemGroup>
 
-	<Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(Configuration)' == 'Release'">
-		<RemoveDir Directories="$(TargetDir)" Condition="Exists('$(TargetDir)')" />
-		<MakeDir Directories="$(TargetDir)FFDec" />
-		<ItemGroup>
-			<FFDecFiles Include="..\FFDec\**\*.*" />
-		</ItemGroup>
-		<Copy SourceFiles="@(FFDecFiles)" DestinationFolder="$(TargetDir)FFDec\%(RecursiveDir)" />
-	</Target>
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(Configuration)' == 'Release'">
+    <RemoveDir Directories="$(TargetDir)" Condition="Exists('$(TargetDir)')" />
+    <MakeDir Directories="$(TargetDir)FFDec" />
+    <ItemGroup>
+      <FFDecFiles Include="..\FFDec\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(FFDecFiles)" DestinationFolder="$(TargetDir)FFDec\%(RecursiveDir)" />
+  </Target>
 
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<ItemGroup>
-			<PdbFiles Include="$(TargetDir)*.pdb" />
-			<ConfigFiles Include="$(TargetDir)*.config" />
-		</ItemGroup>
-		<Delete Files="@(PdbFiles)" />
-		<Delete Files="@(ConfigFiles)" />
-		<Move SourceFiles="$(TargetDir)Skua.App.WPF.exe" DestinationFiles="$(TargetDir)Skua.exe" Condition="'$(Configuration)' == 'Release'" />
-		<MakeDir Directories="$(TargetDir)Assemblies" />
-		<ItemGroup>
-			<FilesToMove Include="$(TargetDir)**\*.*" Exclude="$(TargetDir)Skua.App.WPF.dll;$(TargetDir)*.zip;$(TargetDir)*.swf;$(TargetDir)*.cfg;$(TargetDir)*.pspdb;$(TargetDir)*.pssym;$(TargetDir)*.json;$(TargetDir)*.txt;$(TargetDir)*.exe;$(TargetDir)*.config;$(TargetDir)*.manifest;$(TargetDir)assemblies\**;$(TargetDir)options\**;$(TargetDir)tmp\**;$(TargetDir)tools\**;$(TargetDir)plugins\**;$(TargetDir)Scripts\**;$(TargetDir)FFDec\**" />
-		</ItemGroup>
-		<Move SourceFiles="@(FilesToMove)" DestinationFolder="$(TargetDir)Assemblies\%(RecursiveDir)" />
-		<MakeDir Directories="..\Build\$(PlatformName)" Condition="'$(Configuration)' == 'Release'" />
-		<ItemGroup Condition="'$(Configuration)' == 'Release'">
-			<BuildOutputFiles Include="$(TargetDir)**\*.*" />
-		</ItemGroup>
-		<Copy SourceFiles="@(BuildOutputFiles)" DestinationFolder="..\Build\$(PlatformName)\%(RecursiveDir)" Condition="'$(Configuration)' == 'Release'" />
-	</Target>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+      <PdbFiles Include="$(TargetDir)*.pdb" />
+      <ConfigFiles Include="$(TargetDir)*.config" />
+    </ItemGroup>
+    <Delete Files="@(PdbFiles)" />
+    <Delete Files="@(ConfigFiles)" />
+    <Move SourceFiles="$(TargetDir)Skua.App.WPF.exe" DestinationFiles="$(TargetDir)Skua.exe" Condition="'$(Configuration)' == 'Release'" />
+    <MakeDir Directories="$(TargetDir)Assemblies" />
+    <ItemGroup>
+      <FilesToMove Include="$(TargetDir)**\*.*" Exclude="$(TargetDir)Skua.App.WPF.dll;$(TargetDir)*.zip;$(TargetDir)*.swf;$(TargetDir)*.cfg;$(TargetDir)*.pspdb;$(TargetDir)*.pssym;$(TargetDir)*.json;$(TargetDir)*.txt;$(TargetDir)*.exe;$(TargetDir)*.config;$(TargetDir)*.manifest;$(TargetDir)assemblies\**;$(TargetDir)options\**;$(TargetDir)tmp\**;$(TargetDir)tools\**;$(TargetDir)plugins\**;$(TargetDir)Scripts\**;$(TargetDir)FFDec\**" />
+    </ItemGroup>
+    <Move SourceFiles="@(FilesToMove)" DestinationFolder="$(TargetDir)Assemblies\%(RecursiveDir)" />
+    <MakeDir Directories="..\Build\$(PlatformName)" Condition="'$(Configuration)' == 'Release'" />
+    <ItemGroup Condition="'$(Configuration)' == 'Release'">
+      <BuildOutputFiles Include="$(TargetDir)**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(BuildOutputFiles)" DestinationFolder="..\Build\$(PlatformName)\%(RecursiveDir)" Condition="'$(Configuration)' == 'Release'" />
+  </Target>
 
 </Project>
 

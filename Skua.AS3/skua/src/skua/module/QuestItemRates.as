@@ -9,7 +9,9 @@ public class QuestItemRates extends Module {
     }
 
     override public function onFrame(game:*):void {
+        if (!game || !game.ui) return;
         var modalStack:* = game.ui.ModalStack;
+        if (!modalStack || !modalStack.numChildren) return;
         if (modalStack.numChildren) {
             var cFrame:* = modalStack.getChildAt(0);
             if (getQualifiedClassName(cFrame) == "QFrameMC" && cFrame.cnt.core && cFrame.cnt.core.rewardsRoll) {

@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core" x:Class="Skua.App.Avalonia.Views.AdvancedSkillsView" x:DataType="vm:AdvancedSkillsViewModel">
+    <ScrollViewer Margin="8">
+        <StackPanel Spacing="12">
+            <!-- Editor -->
+            <Expander Header="Create / Edit Skill" IsExpanded="{Binding EditExpanded}">
+                <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" DataContext="{Binding EditViewModel}" Margin="8">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,4">
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                            <Run Text="Class: " />
+                            <Run Text="{Binding CurrentClassName}" FontWeight="SemiBold" />
+                        </TextBlock>
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding ClassUseModes}" SelectedItem="{Binding SelectedClassUseMode}" MinWidth="100" Margin="4,0" />
+                        <CheckBox Grid.Column="2" Content="Use Rules" IsChecked="{Binding UseRules}" />
+                    </Grid>
+                    <Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="0,0,0,4">
+                        <TextBlock Grid.Column="0" Text="Timeout:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <TextBox Grid.Column="1" Text="{Binding CurrentSkillTimeout}" Width="80" HorizontalAlignment="Left" />
+                    </Grid>
+                    <ListBox Grid.Row="3" ItemsSource="{Binding CurrentSkillsList}" SelectedItem="{Binding SelectedSkill}" SelectedIndex="{Binding SelectedSkillIndex}" MinHeight="80">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <WrapPanel Grid.Row="4" Margin="0,4,0,0">
+                        <Button Content="Add Skill" Command="{Binding AddSkillToCurrentCommand}" Margin="0,0,4,4" />
+                        <Button Content="Edit" Command="{Binding EditSkillCommand}" Margin="0,0,4,4" />
+                        <Button Content="Remove" Command="{Binding RemoveSkillCommand}" Margin="0,0,4,4" />
+                        <Button Content="Move Up" Command="{Binding MoveSkillUpCommand}" Margin="0,0,4,4" />
+                        <Button Content="Move Down" Command="{Binding MoveSkillDownCommand}" Margin="0,0,4,4" />
+                        <Button Content="Clear" Command="{Binding ClearSkillsCommand}" Margin="0,0,4,4" />
+                        <Button Content="Save" Command="{Binding SaveSkillsCommand}" Margin="0,0,4,4" />
+                    </WrapPanel>
+                </Grid>
+            </Expander>
+            <!-- Saved Skills -->
+            <Expander Header="Saved Skills" IsExpanded="True">
+                <Grid RowDefinitions="Auto,*,Auto" DataContext="{Binding SavedViewModel}" Margin="8">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,*,Auto" Margin="0,0,0,4">
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableClasses}" SelectedItem="{Binding SelectedClassName}" Margin="0,0,4,0" />
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableModes}" SelectedItem="{Binding SelectedMode}" Margin="4,0,4,0" />
+                        <Button Grid.Column="2" Content="Load" Command="{Binding LoadSelectedClassModeCommand}" />
+                    </Grid>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding LoadedSkills}" SelectedItem="{Binding SelectedSkill}" MinHeight="80">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <WrapPanel Grid.Row="2" Margin="0,4,0,0">
+                        <Button Content="Refresh" Command="{Binding RefreshSkillsCommand}" Margin="0,0,4,4" />
+                        <Button Content="Load Classes" Command="{Binding LoadAvailableClassesCommand}" Margin="0,0,4,4" />
+                        <Button Content="Edit" Command="{Binding EditSelectedCommand}" Margin="0,0,4,4" />
+                        <Button Content="Remove" Command="{Binding RemoveSelectedCommand}" Margin="0,0,4,4" />
+                        <Button Content="Reset" Command="{Binding ResetSkillsSetCommand}" Margin="0,0,4,4" />
+                    </WrapPanel>
+                </Grid>
+            </Expander>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

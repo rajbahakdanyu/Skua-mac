@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
+        <NeutralLanguage>en-US</NeutralLanguage>
+        <Platforms>AnyCPU;x64</Platforms>
+        <RuntimeIdentifiers>osx-arm64;osx-x64;linux-x64;win-x64</RuntimeIdentifiers>
+        <Company>Skua</Company>
+        <Description>Scriptable C# bot for AdventureQuest Worlds (Cross-Platform)</Description>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
+        <PackageReference Include="CommandLineParser" Version="2.9.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Skua.Core\Skua.Core.csproj" />
+        <ProjectReference Include="..\Skua.Avalonia\Skua.Avalonia.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="QuestData.json" />
+        <None Remove="AdvancedSkills.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="..\SharedAssets\QuestData.json" Link="QuestData.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="..\SharedAssets\AdvancedSkills.json" Link="AdvancedSkills.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\Skua.AS3\skua\bin\skua.swf" Link="skua.swf" Condition="Exists('..\Skua.AS3\skua\bin\skua.swf')">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+</Project>

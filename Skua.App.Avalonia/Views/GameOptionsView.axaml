@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
+    xmlns:local="clr-namespace:Skua.App.Avalonia.Views" x:Class="Skua.App.Avalonia.Views.GameOptionsView" x:DataType="vm:GameOptionsViewModel">
+    <Grid RowDefinitions="Auto,*,Auto" Margin="8">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+            <TextBlock Text="Server:" VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding ServersList}" SelectedItem="{Binding SelectedServer}" MinWidth="150" />
+        </StackPanel>
+        <ScrollViewer Grid.Row="1">
+            <ItemsControl ItemsSource="{Binding GameOptions}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:DisplayOptionItemViewModelBase">
+                        <Border Margin="0,2" Padding="6,4" CornerRadius="4" Background="{DynamicResource SystemControlBackgroundListLowBrush}">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Content}" />
+                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="Gray" IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                </StackPanel>
+                                <Panel Grid.Column="1" MinWidth="100">
+                                    <CheckBox IsChecked="{Binding Value}" HorizontalAlignment="Right" IsVisible="{Binding DisplayType, Converter={x:Static local:TypeConverters.IsBool}}" />
+                                    <TextBox Text="{Binding Value}" HorizontalAlignment="Stretch" MinWidth="80" IsVisible="{Binding DisplayType, Converter={x:Static local:TypeConverters.IsOther}}" />
+                                </Panel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
+            <Button Content="Reset" Command="{Binding ResetOptionsCommand}" />
+            <Button Content="Default" Command="{Binding ResetDefaultOptionsCommand}" />
+            <Button Content="Save" Command="{Binding SaveOptionsCommand}" />
+        </StackPanel>
+    </Grid>
+</UserControl>
