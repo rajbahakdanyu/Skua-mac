@@ -139,37 +139,32 @@ public class RuffleFlashUtil : IFlashUtil
         }
     }
 
-    public object FromFlashXml(XElement el)
-    {
-        switch (el.Name.ToString())
-        {
-            case "number":
-                return int.TryParse(el.Value, out int i) ? i : float.TryParse(el.Value, out float f) ? f : 0;
-            case "true":
-                return true;
-            case "false":
-                return false;
-            case "null":
-                return null!;
-            case "array":
-                return el.Elements().Select(e => FromFlashXml(e)).ToArray();
-            case "object":
-                dynamic d = new ExpandoObject();
-                el.Elements().ForEach(e =>
-                {
-                    var idAttr = e.Attribute("id");
-                    if (idAttr is not null && e.Elements().Any())
-                        ((IDictionary<string, object>)d)[idAttr.Value] = FromFlashXml(e.Elements().First());
-                });
-                return d;
-            default:
-                return el.Value;
-        }
-    }
-
     public IFlashObject<T> CreateFlashObject<T>(string path)
     {
         return new FlashObject<T>(Call<int>("lnkCreate", path), this);
+    }
+
+    public object FromFlashXml(XElement el) => el.Name.ToString() switch
+    {
+        "number" => int.TryParse(el.Value, out int i) ? i : float.TryParse(el.Value, out float f) ? f : 0,
+        "true" => true,
+        "false" => false,
+        "null" => null!,
+        "array" => el.Elements().Select(e => FromFlashXml(e)).ToArray(),
+        "object" => BuildExpandoFromXml(el),
+        _ => el.Value
+    };
+
+    private object BuildExpandoFromXml(XElement el)
+    {
+        dynamic d = new ExpandoObject();
+        foreach (var e in el.Elements())
+        {
+            var id = e.Attribute("id");
+            if (id is not null && e.Elements().Any())
+                ((IDictionary<string, object>)d)[id.Value] = FromFlashXml(e.Elements().First());
+        }
+        return d;
     }
 
     public void Dispose()

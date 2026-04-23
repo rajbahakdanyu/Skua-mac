@@ -15,7 +15,6 @@ using Skua.Core.Models;
 using Skua.Core.Utils;
 using Skua.Core.ViewModels;
 using System.Globalization;
-using Westwind.Scripting;
 
 namespace Skua.App.Avalonia;
 
@@ -23,6 +22,7 @@ public sealed partial class App : Application
 {
     public IServiceProvider Services { get; private set; } = null!;
     private IScriptInterface _bot = null!;
+    private SkuaStartupHandler? _startup;
 
     public override void Initialize()
     {
@@ -47,10 +47,8 @@ public sealed partial class App : Application
         _ = Services.GetRequiredService<ILogService>();
 
         string[] args = Environment.GetCommandLineArgs();
-        var startup = new SkuaStartupHandler(args, _bot, Services.GetRequiredService<ISettingsService>(), Services.GetRequiredService<IThemeService>());
-        startup.Execute();
-
-        RoslynLifetimeManager.WarmupRoslyn();
+        _startup = new SkuaStartupHandler(args, _bot, Services.GetRequiredService<ISettingsService>(), Services.GetRequiredService<IThemeService>());
+        _startup.Execute();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -80,11 +78,12 @@ public sealed partial class App : Application
 
         Services.GetRequiredService<IFlashUtil>().Dispose();
 
+        _startup?.Dispose();
+        _startup = null;
+
         WeakReferenceMessenger.Default.Cleanup();
         WeakReferenceMessenger.Default.Reset();
         StrongReferenceMessenger.Default.Reset();
-
-        RoslynLifetimeManager.ShutdownRoslyn();
     }
 
     private void StartUpdateChecks()

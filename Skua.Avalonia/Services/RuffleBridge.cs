@@ -33,7 +33,6 @@ public class RuffleBridge : IDisposable, IComponent
 
     public event Action<string, object[]>? FlashCall;
     public event EventHandler? Disposed;
-
     public ISite? Site { get; set; }
 
     public string GameUrl => $"https://localhost:{Port}/game.html";
@@ -99,7 +98,7 @@ public class RuffleBridge : IDisposable, IComponent
                 });
 
                 MapEndpoints(_app);
-                _app.StartAsync().Wait();
+                _app.StartAsync(_cts.Token).Wait();
                 break;
             }
             catch
@@ -170,9 +169,6 @@ public class RuffleBridge : IDisposable, IComponent
                 }
 
                 using var proxyResp = await _httpClient.SendAsync(proxyReq);
-                // Only log non-200 responses to reduce noise
-
-
                 byte[] body = await proxyResp.Content.ReadAsByteArrayAsync();
                 string contentType = proxyResp.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
 
@@ -610,8 +606,6 @@ public class RuffleBridge : IDisposable, IComponent
             context.Response.StatusCode = 400;
             return;
         }
-
-
 
         using var ws = await context.WebSockets.AcceptWebSocketAsync();
         using var tcp = new TcpClient();

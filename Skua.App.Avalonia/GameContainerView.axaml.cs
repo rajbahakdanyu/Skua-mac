@@ -24,63 +24,49 @@ public partial class GameContainerView : UserControl
         var flashUtil = Ioc.Default.GetRequiredService<IFlashUtil>();
         flashUtil.InitializeFlash();
 
-        // The RuffleBridge starts a local HTTPS server
         if (flashUtil is RuffleFlashUtil ruffleUtil)
         {
-            int port = ruffleUtil.BridgePort;
-            string url = $"https://localhost:{port}/game.html";
+            string url = $"https://localhost:{ruffleUtil.BridgePort}/game.html";
             StatusText.Text = $"Game running at: {url}";
             LoadingBar.IsVisible = false;
-
-            // Launch a Chromium browser with --allow-insecure-localhost for self-signed cert
-            try
-            {
-                string? browserPath = FindChromiumBrowser();
-                if (browserPath != null)
-                {
-                    System.Diagnostics.Process.Start(browserPath,
-                        $"--allow-insecure-localhost \"{url}\"");
-                }
-                else
-                {
-                    var processService = Ioc.Default.GetRequiredService<IProcessService>();
-                    processService.OpenLink(url);
-                }
-            }
-            catch
-            {
-                var processService = Ioc.Default.GetRequiredService<IProcessService>();
-                processService.OpenLink(url);
-            }
+            LaunchBrowser(url);
         }
+    }
+
+    private static void LaunchBrowser(string url)
+    {
+        string? browser = FindChromiumBrowser();
+        if (browser != null)
+        {
+            System.Diagnostics.Process.Start(browser, $"--allow-insecure-localhost \"{url}\"");
+            return;
+        }
+        Ioc.Default.GetRequiredService<IProcessService>().OpenLink(url);
     }
 
     private static string? FindChromiumBrowser()
     {
-        // macOS browser paths (ordered by preference)
-        string[] candidates =
+        if (OperatingSystem.IsMacOS())
         {
-            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-            "/Applications/Chromium.app/Contents/MacOS/Chromium",
-            "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
-            "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
-        };
-
-        foreach (var path in candidates)
-        {
-            if (System.IO.File.Exists(path))
-                return path;
+            string[] candidates =
+            {
+                "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+                "/Applications/Chromium.app/Contents/MacOS/Chromium",
+                "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+                "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+            };
+            foreach (var path in candidates)
+                if (System.IO.File.Exists(path)) return path;
         }
-
-        // Linux: check PATH
-        if (OperatingSystem.IsLinux())
+        else if (OperatingSystem.IsLinux())
         {
             string[] cmds = { "google-chrome", "chromium-browser", "chromium", "microsoft-edge" };
             foreach (var cmd in cmds)
             {
                 try
                 {
-                    var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("which", cmd) { RedirectStandardOutput = true, UseShellExecute = false });
+                    var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("which", cmd)
+                        { RedirectStandardOutput = true, UseShellExecute = false });
                     string? result = p?.StandardOutput.ReadToEnd().Trim();
                     p?.WaitForExit();
                     if (!string.IsNullOrEmpty(result) && System.IO.File.Exists(result))
@@ -89,7 +75,6 @@ public partial class GameContainerView : UserControl
                 catch { }
             }
         }
-
         return null;
     }
 }
