@@ -24,6 +24,63 @@
         <DataTemplate DataType="vm:BotWindowViewModel">
             <views:BotWindowView />
         </DataTemplate>
+        <DataTemplate DataType="vm:GameOptionsViewModel">
+            <views:GameOptionsView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:ApplicationOptionsViewModel">
+            <views:ApplicationOptionsView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:CoreBotsViewModel">
+            <views:CoreBotsView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:ApplicationThemesViewModel">
+            <views:ApplicationThemesView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:HotKeysViewModel">
+            <views:HotKeysView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:RuntimeHelpersViewModel">
+            <views:RuntimeHelpersView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:NotifyDropViewModel">
+            <views:NotifyDropView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:FastTravelViewModel">
+            <views:FastTravelView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:CurrentDropsViewModel">
+            <views:CurrentDropsView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:JunkItemsViewModel">
+            <views:JunkItemsView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:LoaderViewModel">
+            <views:LoaderView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:GrabberViewModel">
+            <views:GrabberView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:ScriptStatsViewModel">
+            <views:ScriptStatsView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:ConsoleViewModel">
+            <views:ConsoleView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:AdvancedSkillsViewModel">
+            <views:AdvancedSkillsView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:PacketSpammerViewModel">
+            <views:PacketSpammerView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:PacketLoggerViewModel">
+            <views:PacketLoggerView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:PacketInterceptorViewModel">
+            <views:PacketInterceptorView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:PluginsViewModel">
+            <views:PluginsView />
+        </DataTemplate>
 
         <!-- Dialog templates -->
         <DataTemplate DataType="vm:MessageBoxDialogViewModel">

@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core" x:Class="Skua.App.Avalonia.Views.NotifyDropView" x:DataType="vm:NotifyDropViewModel">
+    <Grid RowDefinitions="*,Auto,Auto" Margin="8">
+        <ListBox Grid.Row="0" ItemsSource="{Binding NotifyDropList}" SelectionMode="Multiple" x:Name="DropsList" />
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,4">
+            <TextBox Grid.Column="0" Text="{Binding AddDropInput}" Watermark="Drop name" />
+            <Button Grid.Column="1" Content="Add" Command="{Binding AddDropCommand}" Margin="4,0,0,0" />
+        </Grid>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="0,4">
+            <Button Content="Remove All" Command="{Binding RemoveAllDropsCommand}" />
+            <TextBlock Text="Beeps:" VerticalAlignment="Center" />
+            <TextBox Text="{Binding SoundCount}" Width="40" />
+            <TextBlock Text="Delay:" VerticalAlignment="Center" />
+            <TextBox Text="{Binding SoundDelay}" Width="50" />
+            <Button Content="Test" Command="{Binding TestBeepCommand}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

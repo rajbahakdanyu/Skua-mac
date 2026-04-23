@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core" x:Class="Skua.App.Avalonia.Views.GrabberView" x:DataType="vm:GrabberViewModel">
+    <Grid ColumnDefinitions="150,*" Margin="8">
+        <!-- Tab list -->
+        <ListBox Grid.Column="0" ItemsSource="{Binding GrabberTabs}" SelectedItem="{Binding SelectedTab}" Margin="0,0,4,0">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Title}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <!-- Content -->
+        <Grid Grid.Column="1" RowDefinitions="Auto,*,Auto,Auto" Margin="4,0,0,0" DataContext="{Binding SelectedTab}">
+            <TextBox Grid.Row="0" Text="{Binding SearchText}" Watermark="Search..." Margin="0,0,0,4" />
+            <ListBox Grid.Row="1" ItemsSource="{Binding GrabbedItems}" SelectedItem="{Binding SelectedItem}" SelectionMode="Multiple">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="4" Margin="0,4">
+                <Button Content="Grab" Command="{Binding GrabCommand}" />
+                <Button Content="Cancel" Command="{Binding CancelTaskCommand}" />
+                <ItemsControl ItemsSource="{Binding GrabberCommands}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="4" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding Content}" Command="{Binding GrabberTaskCommand}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+            <TextBlock Grid.Row="3" Text="{Binding ProgressReportMessage}" IsVisible="{Binding ShowMessage}" Margin="0,4" Foreground="Gray" />
+        </Grid>
+    </Grid>
+</UserControl>

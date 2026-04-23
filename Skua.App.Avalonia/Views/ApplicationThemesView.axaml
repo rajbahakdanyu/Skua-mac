@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core" x:Class="Skua.App.Avalonia.Views.ApplicationThemesView" x:DataType="vm:ApplicationThemesViewModel">
+    <ScrollViewer Margin="8">
+        <StackPanel Spacing="12">
+            <TextBlock Text="Application Themes" FontSize="18" FontWeight="SemiBold" />
+            <TextBlock Text="Theme customization is limited on macOS. The Avalonia FluentTheme (Dark) is used." TextWrapping="Wrap" Foreground="Gray" />
+            <StackPanel Spacing="8">
+                <TextBlock Text="Backgrounds" FontWeight="SemiBold" />
+                <ComboBox ItemsSource="{Binding BackgroundTheme.AvailableBackgrounds}" SelectedItem="{Binding BackgroundTheme.SelectedBackground}" MinWidth="200" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Browse" Command="{Binding BackgroundTheme.BrowseBackgroundCommand}" />
+                    <Button Content="Refresh" Command="{Binding BackgroundTheme.RefreshBackgroundsCommand}" />
+                    <Button Content="Open Folder" Command="{Binding BackgroundTheme.OpenThemesFolderCommand}" />
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

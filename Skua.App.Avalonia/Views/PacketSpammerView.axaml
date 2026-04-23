@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core" x:Class="Skua.App.Avalonia.Views.PacketSpammerView" x:DataType="vm:PacketSpammerViewModel">
+    <Grid ColumnDefinitions="*,Auto" Margin="8">
+        <!-- Left: packet list -->
+        <Grid Grid.Column="0" RowDefinitions="*,Auto" Margin="0,0,8,0">
+            <ListBox Grid.Row="0" ItemsSource="{Binding Packets}" SelectedIndex="{Binding SelectedIndex}" />
+            <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                <TextBox Grid.Column="0" Text="{Binding PacketText}" Watermark="Packet content" />
+                <Button Grid.Column="1" Content="Send" Command="{Binding SendPacketCommand}" Margin="4,0,0,0" />
+            </Grid>
+        </Grid>
+        <!-- Right: controls -->
+        <StackPanel Grid.Column="1" Spacing="6" MinWidth="120">
+            <Button Content="Add" Command="{Binding AddPacketCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+            <Button Content="Remove" Command="{Binding RemovePacketCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+            <Button Content="Clear" Command="{Binding ClearPacketsCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+            <Separator />
+            <Button Content="Load" Command="{Binding LoadSpammerCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+            <Button Content="Save" Command="{Binding SaveSpammerCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+            <Separator />
+            <TextBlock Text="Delay (ms):" />
+            <TextBox Text="{Binding SpamDelay}" />
+            <TextBlock Text="Send Times:" />
+            <TextBox Text="{Binding SendTimes}" />
+            <CheckBox Content="To Client" IsChecked="{Binding SendToClient}" />
+            <Button Command="{Binding ToggleSpammerCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                <TextBlock Text="Start / Stop" />
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

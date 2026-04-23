@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core" x:Class="Skua.App.Avalonia.Views.PacketInterceptorView" x:DataType="vm:PacketInterceptorViewModel">
+    <Grid RowDefinitions="Auto,*,Auto" Margin="8">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+            <ComboBox ItemsSource="{Binding ServerList}" SelectedItem="{Binding SelectedServer}" MinWidth="200">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Content="Connect" Command="{Binding ConnectInterceptorCommand}" />
+            <ToggleButton Content="Log Packets" IsChecked="{Binding IsLogging}" />
+            <TextBlock VerticalAlignment="Center" Foreground="Gray">
+                <Run Text="Status: " />
+                <Run Text="{Binding Running}" />
+            </TextBlock>
+        </StackPanel>
+        <ListBox Grid.Row="1" ItemsSource="{Binding Packets}" SelectionMode="Multiple">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Packet}" FontFamily="Consolas, Courier New, monospace" FontSize="11" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+            <Button Content="Clear" Command="{Binding ClearPacketsCommand}" />
+            <Button Content="Clear Filters" Command="{Binding ClearFiltersCommand}" />
+        </StackPanel>
+    </Grid>
+</UserControl>
