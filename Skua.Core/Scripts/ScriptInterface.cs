@@ -520,7 +520,9 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             Stats.GetSpace();
                             if (invItem is null)
                             {
-                                invItem = Bank.GetItem(itemID)!;
+                                invItem = Bank.GetItem(itemID);
+                                if (invItem is null)
+                                    break;
                                 Messenger.Send<ItemAddedToBankMessage, int>(new(invItem, invItem.Quantity), (int)MessageChannels.GameEvents);
                                 break;
                             }
