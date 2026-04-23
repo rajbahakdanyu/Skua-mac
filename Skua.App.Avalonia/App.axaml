@@ -81,6 +81,12 @@
         <DataTemplate DataType="vm:PluginsViewModel">
             <views:PluginsView />
         </DataTemplate>
+        <DataTemplate DataType="vm:AutoViewModel">
+            <views:AutoView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:JumpViewModel">
+            <views:JumpView />
+        </DataTemplate>
 
         <!-- Dialog templates -->
         <DataTemplate DataType="vm:MessageBoxDialogViewModel">
