@@ -209,6 +209,21 @@ public class RuffleBridge : IDisposable, IComponent
                     console.log('[Skua]', msg);
                 }
 
+                // Prevent browser from throttling this tab when it's in the background.
+                // A running AudioContext keeps the event loop at full speed.
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    gain.gain.value = 0; // silent
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    // Also resume on user interaction in case autoplay policy blocks it
+                    document.addEventListener('click', () => audioCtx.resume(), { once: true });
+                    log('Anti-throttle audio started');
+                } catch(e) { console.warn('[Skua] Audio anti-throttle failed:', e); }
+
                 // Proxy override: intercept ALL external fetch/XHR through our local server
                 const cdnHosts = ['unpkg.com', 'cdn.jsdelivr.net', 'cdnjs.cloudflare.com'];
                 function shouldProxy(url) {
@@ -277,6 +292,9 @@ public class RuffleBridge : IDisposable, IComponent
                     bridgeWs.onopen = () => console.log('[Skua] Bridge WS connected');
                     bridgeWs.onclose = () => { console.log('[Skua] Bridge WS closed'); setTimeout(connectBridge, 500); };
                     bridgeWs.onerror = () => {};
+
+                    // Process calls directly in onmessage — no setTimeout (throttled in background tabs).
+                    // With .NET serialization removed, calls arrive one at a time or in small bursts.
                     bridgeWs.onmessage = (evt) => {
                         try {
                             const call = JSON.parse(evt.data);
@@ -426,6 +444,12 @@ public class RuffleBridge : IDisposable, IComponent
             return null;
         }
 
+        return CallFunctionInternal(name, args);
+    }
+
+    private string? CallFunctionInternal(string name, object[] args)
+    {
+
         string id = Interlocked.Increment(ref _callId).ToString();
         var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
         _pendingCalls[id] = tcs;
@@ -445,6 +469,11 @@ public class RuffleBridge : IDisposable, IComponent
                 }
                 finally { _wsSendLock.Release(); }
             }
+            else
+            {
+                _pendingCalls.TryRemove(id, out _);
+                return null;
+            }
         }
         catch
         {
@@ -454,7 +483,7 @@ public class RuffleBridge : IDisposable, IComponent
 
         try
         {
-            if (tcs.Task.Wait(TimeSpan.FromSeconds(10)))
+            if (tcs.Task.Wait(TimeSpan.FromSeconds(30)))
             {
                 return tcs.Task.Result;
             }
@@ -498,50 +527,83 @@ public class RuffleBridge : IDisposable, IComponent
         using var ws = await context.WebSockets.AcceptWebSocketAsync();
         _commandSocket = ws;
 
-        var buffer = new byte[16384];
+        // Run the receive loop on a dedicated thread so it is never starved
+        // by thread-pool threads blocked in CallFunction .Wait() calls.
+        var done = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                ReceiveLoop(ws);
+            }
+            finally
+            {
+                if (_commandSocket == ws) _commandSocket = null;
+                done.TrySetResult();
+            }
+        })
+        {
+            IsBackground = true,
+            Name = "BridgeReceive"
+        };
+        thread.Start();
+        await done.Task;
+    }
+
+    private void ReceiveLoop(WebSocket ws)
+    {
+        var buffer = new byte[65536];
         try
         {
             while (ws.State == WebSocketState.Open)
             {
-                var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                // Accumulate full message (may be fragmented across multiple frames)
+                using var ms = new MemoryStream();
+                WebSocketReceiveResult result;
+                do
+                {
+                    result = ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None)
+                        .GetAwaiter().GetResult();
+                    if (result.MessageType == WebSocketMessageType.Close)
+                        break;
+                    ms.Write(buffer, 0, result.Count);
+                } while (!result.EndOfMessage);
+
                 if (result.MessageType == WebSocketMessageType.Close)
                     break;
-                if (result.Count > 0)
-                {
-                    var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    try
-                    {
-                        var doc = JsonDocument.Parse(json);
-                        var root = doc.RootElement;
 
-                        if (root.TryGetProperty("type", out var typeEl) && typeEl.GetString() == "flashcall")
-                        {
-                            // SWF → .NET flash call via WebSocket
-                            string xml = root.GetProperty("xml").GetString()!;
-                            var el = XElement.Parse(xml);
-                            string function = el.Attribute("name")!.Value;
-                            var argsElement = el.Element("arguments");
-                            object[] args = argsElement?.Elements().Select(x => ParseFlashArg(x)).ToArray() ?? Array.Empty<object>();
-                            FlashCall?.Invoke(function, args);
-                        }
-                        else if (root.TryGetProperty("id", out var idEl))
-                        {
-                            // Call result from browser
-                            string id = idEl.GetString()!;
-                            string callResult = root.GetProperty("result").GetString()!;
-                            if (_pendingCalls.TryRemove(id, out var tcs))
-                                tcs.TrySetResult(callResult);
-                        }
+                if (ms.Length == 0)
+                    continue;
+
+                var json = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
+                try
+                {
+                    var doc = JsonDocument.Parse(json);
+                    var root = doc.RootElement;
+
+                    if (root.TryGetProperty("type", out var typeEl) && typeEl.GetString() == "flashcall")
+                    {
+                        // SWF → .NET flash call via WebSocket — dispatch to thread pool
+                        string xml = root.GetProperty("xml").GetString()!;
+                        var el = XElement.Parse(xml);
+                        string function = el.Attribute("name")!.Value;
+                        var argsElement = el.Element("arguments");
+                        object[] args = argsElement?.Elements().Select(x => ParseFlashArg(x)).ToArray() ?? Array.Empty<object>();
+                        ThreadPool.QueueUserWorkItem(_ => FlashCall?.Invoke(function, args));
                     }
-                    catch { }
+                    else if (root.TryGetProperty("id", out var idEl))
+                    {
+                        // Call result from browser — complete the pending call
+                        string id = idEl.GetString()!;
+                        string callResult = root.GetProperty("result").GetString()!;
+                        if (_pendingCalls.TryRemove(id, out var tcs))
+                            tcs.TrySetResult(callResult);
+                    }
                 }
+                catch { }
             }
         }
         catch (WebSocketException) { }
-        finally
-        {
-            if (_commandSocket == ws) _commandSocket = null;
-        }
     }
 
     private static async Task HandleSocketProxy(HttpContext context)
