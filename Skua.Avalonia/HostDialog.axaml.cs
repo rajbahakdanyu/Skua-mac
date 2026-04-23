@@ -10,9 +10,4 @@ public partial class HostDialog : Window
     {
         InitializeComponent();
     }
-
-    protected override void OnClosing(WindowClosingEventArgs e)
-    {
-        base.OnClosing(e);
-    }
 }

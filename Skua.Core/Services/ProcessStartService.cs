@@ -29,7 +29,7 @@ public class ProcessStartService : IProcessService
 
     public void OpenVSC()
     {
-        if (_settingsService.Get("UseLocalVSC", false))
+        if (_settingsService.Get("UseLocalVSC", false) && File.Exists(_vscPath))
         {
             Process.Start(_vscPath, _scriptsPath);
             return;
@@ -46,7 +46,7 @@ public class ProcessStartService : IProcessService
 
     public void OpenVSC(string path)
     {
-        if (_settingsService.Get("UseLocalVSC", false))
+        if (_settingsService.Get("UseLocalVSC", false) && File.Exists(_vscPath))
         {
             Process.Start(_vscPath, new[] { _scriptsPath, path, "--reuse-window" });
             return;
@@ -57,7 +57,11 @@ public class ProcessStartService : IProcessService
         }
         catch
         {
-            Process.Start("notepad", path);
+            try
+            {
+                Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+            }
+            catch { }
         }
     }
 

@@ -13,29 +13,27 @@
         <!-- Auto popup -->
         <ToggleButton x:Name="AutoToggle" Content="Auto" DockPanel.Dock="Left" Padding="8,2" Margin="2" />
 
-        <!-- Main Menu -->
+        <!-- Plugins Menu -->
         <Menu DockPanel.Dock="Left" VerticalAlignment="Center">
             <MenuItem Header="Plugins" ItemsSource="{Binding Plugins}">
-                <MenuItem.ItemTemplate>
-                    <DataTemplate>
-                        <MenuItem Header="{Binding Title}" Command="{Binding Command}" />
-                    </DataTemplate>
-                </MenuItem.ItemTemplate>
+                <MenuItem.Styles>
+                    <Style Selector="MenuItem" x:DataType="vm:MainMenuItemViewModel">
+                        <Setter Property="Header" Value="{Binding Header}" />
+                        <Setter Property="Command" Value="{Binding Command}" />
+                    </Style>
+                </MenuItem.Styles>
             </MenuItem>
         </Menu>
 
+        <!-- Main Menu Items -->
         <Menu DockPanel.Dock="Left" ItemsSource="{Binding MainMenuItems}" VerticalAlignment="Center">
-            <Menu.ItemTemplate>
-                <DataTemplate>
-                    <MenuItem Header="{Binding Title}" Command="{Binding Command}" ItemsSource="{Binding SubItems}">
-                        <MenuItem.ItemTemplate>
-                            <DataTemplate>
-                                <MenuItem Header="{Binding Title}" Command="{Binding Command}" />
-                            </DataTemplate>
-                        </MenuItem.ItemTemplate>
-                    </MenuItem>
-                </DataTemplate>
-            </Menu.ItemTemplate>
+            <Menu.Styles>
+                <Style Selector="MenuItem" x:DataType="vm:MainMenuItemViewModel">
+                    <Setter Property="Header" Value="{Binding Header}" />
+                    <Setter Property="Command" Value="{Binding Command}" />
+                    <Setter Property="ItemsSource" Value="{Binding SubItems}" />
+                </Style>
+            </Menu.Styles>
         </Menu>
     </DockPanel>
 </UserControl>

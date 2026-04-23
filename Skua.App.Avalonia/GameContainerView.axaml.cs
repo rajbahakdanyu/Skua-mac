@@ -32,18 +32,17 @@ public partial class GameContainerView : UserControl
             StatusText.Text = $"Game running at: {url}";
             LoadingBar.IsVisible = false;
 
-            // Launch Chrome with --allow-insecure-localhost to accept self-signed cert
+            // Launch a Chromium browser with --allow-insecure-localhost for self-signed cert
             try
             {
-                string chromePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-                if (System.IO.File.Exists(chromePath))
+                string? browserPath = FindChromiumBrowser();
+                if (browserPath != null)
                 {
-                    System.Diagnostics.Process.Start(chromePath,
+                    System.Diagnostics.Process.Start(browserPath,
                         $"--allow-insecure-localhost \"{url}\"");
                 }
                 else
                 {
-                    // Fallback to default browser (user may need to accept cert warning)
                     var processService = Ioc.Default.GetRequiredService<IProcessService>();
                     processService.OpenLink(url);
                 }
@@ -54,5 +53,43 @@ public partial class GameContainerView : UserControl
                 processService.OpenLink(url);
             }
         }
+    }
+
+    private static string? FindChromiumBrowser()
+    {
+        // macOS browser paths (ordered by preference)
+        string[] candidates =
+        {
+            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+            "/Applications/Chromium.app/Contents/MacOS/Chromium",
+            "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+            "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+        };
+
+        foreach (var path in candidates)
+        {
+            if (System.IO.File.Exists(path))
+                return path;
+        }
+
+        // Linux: check PATH
+        if (OperatingSystem.IsLinux())
+        {
+            string[] cmds = { "google-chrome", "chromium-browser", "chromium", "microsoft-edge" };
+            foreach (var cmd in cmds)
+            {
+                try
+                {
+                    var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("which", cmd) { RedirectStandardOutput = true, UseShellExecute = false });
+                    string? result = p?.StandardOutput.ReadToEnd().Trim();
+                    p?.WaitForExit();
+                    if (!string.IsNullOrEmpty(result) && System.IO.File.Exists(result))
+                        return result;
+                }
+                catch { }
+            }
+        }
+
+        return null;
     }
 }

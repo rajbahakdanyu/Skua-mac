@@ -210,19 +210,17 @@ public class RuffleBridge : IDisposable, IComponent
                 }
 
                 // Prevent browser from throttling this tab when it's in the background.
-                // A running AudioContext keeps the event loop at full speed.
+                // A silent AudioContext keeps the event loop at full speed.
                 try {
                     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
-                    gain.gain.value = 0; // silent
+                    gain.gain.value = 0;
                     osc.connect(gain);
                     gain.connect(audioCtx.destination);
                     osc.start();
-                    // Also resume on user interaction in case autoplay policy blocks it
                     document.addEventListener('click', () => audioCtx.resume(), { once: true });
-                    log('Anti-throttle audio started');
-                } catch(e) { console.warn('[Skua] Audio anti-throttle failed:', e); }
+                } catch(e) { }
 
                 // Proxy override: intercept ALL external fetch/XHR through our local server
                 const cdnHosts = ['unpkg.com', 'cdn.jsdelivr.net', 'cdnjs.cloudflare.com'];
@@ -443,12 +441,6 @@ public class RuffleBridge : IDisposable, IComponent
         {
             return null;
         }
-
-        return CallFunctionInternal(name, args);
-    }
-
-    private string? CallFunctionInternal(string name, object[] args)
-    {
 
         string id = Interlocked.Increment(ref _callId).ToString();
         var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
