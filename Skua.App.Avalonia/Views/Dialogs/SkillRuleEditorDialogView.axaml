@@ -1,0 +1,126 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:Skua.Core.ViewModels" x:Class="Skua.App.Avalonia.Views.Dialogs.SkillRuleEditorDialogView" x:DataType="vm:SkillRuleEditorDialogViewModel">
+    <StackPanel Margin="16" Spacing="8" MinWidth="400">
+        <!-- Skill Rules Editor bound to UseRules -->
+        <StackPanel DataContext="{Binding UseRules}" Spacing="6">
+            <Grid ColumnDefinitions="Auto,Auto,*">
+                <CheckBox Grid.Column="0" Content="Use Rule?" IsChecked="{Binding UseRuleBool}" Margin="0,0,12,0" ToolTip.Tip="Whether to use the specified rule values when adding a skill." />
+                <CheckBox Grid.Column="1" Content="Multi Aura" IsChecked="{Binding MultiAuraBool}" ToolTip.Tip="Use multiple aura checks instead of single aura rule." />
+                <Button Grid.Column="2" Content="Reset" Command="{Binding ResetUseRulesCommand}" HorizontalAlignment="Right" />
+            </Grid>
+
+            <!-- Health -->
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <ToggleButton Grid.Column="0" IsChecked="{Binding HealthGreaterThanBool}" Margin="0,0,4,0" MinWidth="40">
+                    <Panel>
+                        <TextBlock Text="≥" IsVisible="{Binding HealthGreaterThanBool}" HorizontalAlignment="Center" />
+                        <TextBlock Text="≤" IsVisible="{Binding !HealthGreaterThanBool}" HorizontalAlignment="Center" />
+                    </Panel>
+                </ToggleButton>
+                <TextBox Grid.Column="1" Text="{Binding HealthUseValue}" Watermark="Health" Margin="0,0,4,0" />
+                <ToggleButton Grid.Column="2" IsChecked="{Binding HealthIsPercentage}" MinWidth="40">
+                    <Panel>
+                        <TextBlock Text="%" IsVisible="{Binding HealthIsPercentage}" HorizontalAlignment="Center" />
+                        <TextBlock Text="#" IsVisible="{Binding !HealthIsPercentage}" HorizontalAlignment="Center" />
+                    </Panel>
+                </ToggleButton>
+            </Grid>
+
+            <!-- Mana -->
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <ToggleButton Grid.Column="0" IsChecked="{Binding ManaGreaterThanBool}" Margin="0,0,4,0" MinWidth="40">
+                    <Panel>
+                        <TextBlock Text="≥" IsVisible="{Binding ManaGreaterThanBool}" HorizontalAlignment="Center" />
+                        <TextBlock Text="≤" IsVisible="{Binding !ManaGreaterThanBool}" HorizontalAlignment="Center" />
+                    </Panel>
+                </ToggleButton>
+                <TextBox Grid.Column="1" Text="{Binding ManaUseValue}" Watermark="Mana" Margin="0,0,4,0" />
+                <ToggleButton Grid.Column="2" IsChecked="{Binding ManaIsPercentage}" MinWidth="40">
+                    <Panel>
+                        <TextBlock Text="%" IsVisible="{Binding ManaIsPercentage}" HorizontalAlignment="Center" />
+                        <TextBlock Text="#" IsVisible="{Binding !ManaIsPercentage}" HorizontalAlignment="Center" />
+                    </Panel>
+                </ToggleButton>
+            </Grid>
+
+            <!-- Party Member Health -->
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <ToggleButton Grid.Column="0" IsChecked="{Binding PartyMemberHealthGreaterThanBool}" Margin="0,0,4,0" MinWidth="40">
+                    <Panel>
+                        <TextBlock Text="≥" IsVisible="{Binding PartyMemberHealthGreaterThanBool}" HorizontalAlignment="Center" />
+                        <TextBlock Text="≤" IsVisible="{Binding !PartyMemberHealthGreaterThanBool}" HorizontalAlignment="Center" />
+                    </Panel>
+                </ToggleButton>
+                <TextBox Grid.Column="1" Text="{Binding PartyMemberHealthUseValue}" Watermark="Party Member HP" Margin="0,0,4,0" />
+                <ToggleButton Grid.Column="2" IsChecked="{Binding PartyMemberHealthIsPercentage}" MinWidth="40">
+                    <Panel>
+                        <TextBlock Text="%" IsVisible="{Binding PartyMemberHealthIsPercentage}" HorizontalAlignment="Center" />
+                        <TextBlock Text="#" IsVisible="{Binding !PartyMemberHealthIsPercentage}" HorizontalAlignment="Center" />
+                    </Panel>
+                </ToggleButton>
+            </Grid>
+
+            <!-- Single Aura (visible when MultiAuraBool is false) -->
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" IsVisible="{Binding !MultiAuraBool}">
+                <ToggleButton Grid.Column="0" IsChecked="{Binding AuraGreaterThanBool}" Margin="0,0,4,0" MinWidth="40">
+                    <Panel>
+                        <TextBlock Text="≥" IsVisible="{Binding AuraGreaterThanBool}" HorizontalAlignment="Center" />
+                        <TextBlock Text="≤" IsVisible="{Binding !AuraGreaterThanBool}" HorizontalAlignment="Center" />
+                    </Panel>
+                </ToggleButton>
+                <TextBox Grid.Column="1" Text="{Binding AuraName}" Watermark="Aura Name" Margin="0,0,4,0" />
+                <TextBox Grid.Column="2" Text="{Binding AuraUseValue}" Watermark="Stacks" Width="70" Margin="0,0,4,0" />
+                <ComboBox Grid.Column="3" SelectedIndex="{Binding AuraTargetIndex}" MinWidth="80">
+                    <ComboBoxItem Content="Self" />
+                    <ComboBoxItem Content="Target" />
+                </ComboBox>
+            </Grid>
+
+            <!-- Multi Aura (visible when MultiAuraBool is true) -->
+            <StackPanel IsVisible="{Binding MultiAuraBool}" Spacing="4">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Column="0" Text="Operator:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <ComboBox Grid.Column="1" SelectedIndex="{Binding MultiAuraOperatorIndex}" MinWidth="80">
+                        <ComboBoxItem Content="AND" />
+                        <ComboBoxItem Content="OR" />
+                    </ComboBox>
+                    <Button Grid.Column="2" Content="+ Add" Command="{Binding AddAuraCheckCommand}" HorizontalAlignment="Right" />
+                </Grid>
+                <ItemsControl ItemsSource="{Binding MultiAuraChecks}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" Margin="0,2">
+                                <ToggleButton Grid.Column="0" IsChecked="{Binding IsGreater}" Margin="0,0,4,0" MinWidth="32">
+                                    <Panel>
+                                        <TextBlock Text="≥" IsVisible="{Binding IsGreater}" HorizontalAlignment="Center" />
+                                        <TextBlock Text="≤" IsVisible="{Binding !IsGreater}" HorizontalAlignment="Center" />
+                                    </Panel>
+                                </ToggleButton>
+                                <TextBox Grid.Column="1" Text="{Binding AuraName}" Watermark="Aura" Margin="0,0,4,0" />
+                                <TextBox Grid.Column="2" Text="{Binding StackCount}" Watermark="Stacks" Width="60" Margin="0,0,4,0" />
+                                <ComboBox Grid.Column="3" SelectedIndex="{Binding AuraTargetIndex}" MinWidth="70" Margin="0,0,4,0">
+                                    <ComboBoxItem Content="Self" />
+                                    <ComboBoxItem Content="Target" />
+                                </ComboBox>
+                                <Button Grid.Column="4" Content="X" Command="{Binding $parent[ItemsControl].((vm:SkillRulesViewModel)DataContext).RemoveAuraCheckCommand}" CommandParameter="{Binding}" MinWidth="30" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- Wait and Skip -->
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0" Text="{Binding WaitUseValue}" Watermark="Wait (ms)" Margin="0,0,8,0" />
+                <CheckBox Grid.Column="1" Content="Skip if unavailable" IsChecked="{Binding SkipUseBool}" ToolTip.Tip="Will skip skill if it is not available. If the skill has a Wait rule, it will wait first then check." />
+            </Grid>
+        </StackPanel>
+
+        <!-- Dialog buttons -->
+        <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
+            <Button Grid.Column="0" Content="Confirm" Margin="0,0,4,0" Click="Confirm_Click" HorizontalAlignment="Stretch" />
+            <Button Grid.Column="1" Content="Cancel" Margin="4,0,0,0" Click="Cancel_Click" HorizontalAlignment="Stretch" />
+        </Grid>
+    </StackPanel>
+</UserControl>

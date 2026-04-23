@@ -76,13 +76,16 @@ public partial class ManagerMainViewModel : ObservableRecipient
     [RelayCommand]
     private void OpenGHAuthDialog()
     {
-        _dialogService.ShowDialog(Ioc.Default.GetRequiredService<GitHubAuthViewModel>());
-
-        string? token = _settingsService.Get<string>("UserGitHubToken");
-        if (!string.IsNullOrWhiteSpace(token))
+        _ = Task.Run(() =>
         {
-            HttpClients.UserGitHubClient = new(token);
-            IsAuthenticated = true;
-        }
+            _dialogService.ShowDialog(Ioc.Default.GetRequiredService<GitHubAuthViewModel>());
+
+            string? token = _settingsService.Get<string>("UserGitHubToken");
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                HttpClients.UserGitHubClient = new(token);
+                IsAuthenticated = true;
+            }
+        });
     }
 }

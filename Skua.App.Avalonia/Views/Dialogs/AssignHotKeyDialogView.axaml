@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:Skua.Core.ViewModels" x:Class="Skua.App.Avalonia.Views.Dialogs.AssignHotKeyDialogView" x:DataType="vm:AssignHotKeyDialogViewModel">
+    <StackPanel Margin="16" Spacing="8" MinWidth="280">
+        <Button x:Name="AssignKeyButton" Content="{Binding KeyInput}" Click="AssignKey_Click" HorizontalAlignment="Stretch" />
+        <TextBlock Text="{Binding InputHint}" Foreground="OrangeRed" TextWrapping="Wrap" MinHeight="20" />
+        <Grid ColumnDefinitions="*,*,*" Margin="0,4">
+            <CheckBox Grid.Column="0" Content="Ctrl" IsChecked="{Binding CtrlCheck}" />
+            <CheckBox Grid.Column="1" Content="Alt" IsChecked="{Binding AltCheck}" />
+            <CheckBox Grid.Column="2" Content="Shift" IsChecked="{Binding ShiftCheck}" />
+        </Grid>
+        <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
+            <Button Grid.Column="0" Content="Save" Margin="0,0,4,0" Click="Save_Click" HorizontalAlignment="Stretch" />
+            <Button Grid.Column="1" Content="Cancel" Margin="4,0,0,0" Click="Cancel_Click" HorizontalAlignment="Stretch" />
+        </Grid>
+    </StackPanel>
+</UserControl>

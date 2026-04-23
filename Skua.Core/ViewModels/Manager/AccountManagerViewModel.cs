@@ -362,31 +362,34 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
 
     private void _RenameGroup(GroupItemViewModel group)
     {
-        InputDialogViewModel inputDialogViewModel = new(
-            "Rename Group", "Enter new group name", "Group Name", numericInputOnly: false)
+        _ = Task.Run(() =>
         {
-            DialogTextInput = group.Name
-        };
-
-        bool? result = _dialogService.ShowDialog(inputDialogViewModel, "Rename Group");
-
-        if (result == true && !string.IsNullOrWhiteSpace(inputDialogViewModel.DialogTextInput))
-        {
-            string newName = inputDialogViewModel.DialogTextInput.Trim();
-
-            if (newName.Equals(group.Name, StringComparison.OrdinalIgnoreCase))
-                return;
-
-            if (Groups.Any(g => g.Name.Equals(newName, StringComparison.OrdinalIgnoreCase)))
+            InputDialogViewModel inputDialogViewModel = new(
+                "Rename Group", "Enter new group name", "Group Name", numericInputOnly: false)
             {
-                _dialogService.ShowMessageBox($"A group named '{newName}' already exists.", "Duplicate Group");
-                return;
+                DialogTextInput = group.Name
+            };
+
+            bool? result = _dialogService.ShowDialog(inputDialogViewModel, "Rename Group");
+
+            if (result == true && !string.IsNullOrWhiteSpace(inputDialogViewModel.DialogTextInput))
+            {
+                string newName = inputDialogViewModel.DialogTextInput.Trim();
+
+                if (newName.Equals(group.Name, StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                if (Groups.Any(g => g.Name.Equals(newName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    _dialogService.ShowMessageBox($"A group named '{newName}' already exists.", "Duplicate Group");
+                    return;
+                }
+
+                group.Name = newName;
+
+                _SaveGroups();
             }
-
-            group.Name = newName;
-
-            _SaveGroups();
-        }
+        });
     }
 
     private void _RemoveAccountFromGroup(GroupItemViewModel group, AccountItemViewModel account)

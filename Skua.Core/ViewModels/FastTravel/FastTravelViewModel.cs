@@ -91,8 +91,11 @@ public partial class FastTravelViewModel : BotControlViewModelBase
             return;
 
         int index = recipient.FastTravelItems.IndexOf(message.FastTravel);
-        FastTravelEditorDialogViewModel dialog = new(new(recipient.MapService, message.FastTravel));
-        if (recipient._dialogService.ShowDialog(dialog) == true)
-            recipient.FastTravelItems[index] = dialog.Editor.Travel;
+        _ = Task.Run(() =>
+        {
+            FastTravelEditorDialogViewModel dialog = new(new(recipient.MapService, message.FastTravel));
+            if (recipient._dialogService.ShowDialog(dialog) == true)
+                recipient.FastTravelItems[index] = dialog.Editor.Travel;
+        });
     }
 }

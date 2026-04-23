@@ -55,9 +55,12 @@ public partial class AdvancedSkillEditorViewModel : ObservableRecipient
     {
         if (SelectedSkill is null)
             return;
-        SkillRuleEditorDialogViewModel toEdit = new(new(SelectedSkill.UseRules));
-        if (_dialogService.ShowDialog(toEdit) == true)
-            SelectedSkill.UseRules = toEdit.UseRules;
+        _ = Task.Run(() =>
+        {
+            SkillRuleEditorDialogViewModel toEdit = new(new(SelectedSkill.UseRules));
+            if (_dialogService.ShowDialog(toEdit) == true)
+                SelectedSkill.UseRules = toEdit.UseRules;
+        });
     }
 
     [RelayCommand]

@@ -33,4 +33,50 @@ dotnet publish Skua.App.Avalonia/Skua.App.Avalonia.csproj \
 
 echo ""
 echo "Build complete! Output: publish/$RID/"
-echo "Run with: ./publish/$RID/Skua.App.Avalonia"
+echo ""
+
+# Create .app bundle
+APP_DIR="publish/Skua.app/Contents"
+rm -rf publish/Skua.app
+mkdir -p "$APP_DIR/MacOS" "$APP_DIR/Resources"
+cp -R "publish/$RID/"* "$APP_DIR/MacOS/"
+
+VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>/\1/' | tr -d '[:space:]')
+SHORT_VERSION=$(echo "$VERSION" | cut -d. -f1-3)
+
+cat > "$APP_DIR/Info.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>Skua</string>
+    <key>CFBundleDisplayName</key>
+    <string>Skua</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.auqw.skua</string>
+    <key>CFBundleVersion</key>
+    <string>${VERSION}</string>
+    <key>CFBundleShortVersionString</key>
+    <string>${SHORT_VERSION}</string>
+    <key>CFBundleExecutable</key>
+    <string>Skua.App.Avalonia</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>12.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSSupportsAutomaticGraphicsSwitching</key>
+    <true/>
+</dict>
+</plist>
+EOF
+
+chmod +x "$APP_DIR/MacOS/Skua.App.Avalonia"
+xattr -cr publish/Skua.app 2>/dev/null || true
+
+echo "Skua.app bundle created: publish/Skua.app"
+echo "You can double-click it in Finder or run: open publish/Skua.app"

@@ -56,17 +56,20 @@ public partial class HotKeysViewModel : BotControlViewModelBase, IManagedWindow
 
     private void EditHotKey(HotKeysViewModel recipient, EditHotKeyMessage message)
     {
-        HotKey? hotKey = recipient._hotKeyService.ParseToHotKey(message.KeyGesture);
-        AssignHotKeyDialogViewModel diag = hotKey is null ? new(message.Title) : new(message.Title, hotKey);
-        if (recipient._dialogService.ShowDialog(diag) == true)
+        _ = Task.Run(() =>
         {
-            HotKeyItemViewModel? hk = recipient.HotKeys.Find(hk => hk.Title == message.Title);
-            if (hk != null)
+            HotKey? hotKey = recipient._hotKeyService.ParseToHotKey(message.KeyGesture);
+            AssignHotKeyDialogViewModel diag = hotKey is null ? new(message.Title) : new(message.Title, hotKey);
+            if (recipient._dialogService.ShowDialog(diag) == true)
             {
-                hk.KeyGesture = diag.KeyGesture;
-                recipient.Save();
-                recipient._hotKeyService.Reload();
+                HotKeyItemViewModel? hk = recipient.HotKeys.Find(hk => hk.Title == message.Title);
+                if (hk != null)
+                {
+                    hk.KeyGesture = diag.KeyGesture;
+                    recipient.Save();
+                    recipient._hotKeyService.Reload();
+                }
             }
-        }
+        });
     }
 }
