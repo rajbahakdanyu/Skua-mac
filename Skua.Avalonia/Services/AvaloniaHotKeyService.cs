@@ -69,7 +69,7 @@ public class AvaloniaHotKeyService : IHotKeyService, IDisposable
         _settingsService.Set("HotKeys", hotkeys);
 
         List<T> parsed = new();
-        foreach (string hk in hotkeys)
+        foreach (string? hk in hotkeys)
         {
             if (string.IsNullOrEmpty(hk)) continue;
             string[] split = hk.Split('|');
@@ -122,7 +122,7 @@ public class AvaloniaHotKeyService : IHotKeyService, IDisposable
     {
         HashSet<string> existing = new();
         HashSet<string> usedGestures = new(StringComparer.OrdinalIgnoreCase);
-        foreach (string hk in hotkeys)
+        foreach (string? hk in hotkeys)
         {
             if (string.IsNullOrWhiteSpace(hk)) continue;
             string[] split = hk.Split('|');

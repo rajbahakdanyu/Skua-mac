@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Caseless.Fody" Version="1.9.1" />
+    <PackageReference Include="Caseless.Fody" Version="1.9.1" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

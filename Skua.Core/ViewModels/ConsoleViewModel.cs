@@ -42,7 +42,7 @@ public class Script{ public void ScriptMain(IScriptInterface Bot){";
         {
             try
             {
-                object? o = _scriptManager.Compile($"{_source}{_snippetText}}}}}");
+                object? o = _scriptManager.Compile($"{_source}{SnippetText}}}}}");
                 if (o is null)
                 {
                     _dialogService.ShowMessageBox("Compilation returned null.", "Error");

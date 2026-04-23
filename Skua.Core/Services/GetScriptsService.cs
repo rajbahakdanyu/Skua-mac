@@ -28,12 +28,12 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
 
     public async ValueTask<List<ScriptInfo>> GetScriptsAsync(IProgress<string>? progress, CancellationToken token)
     {
-        if (_scripts.Any())
-            return _scripts.ToList();
+        if (Scripts.Any())
+            return Scripts.ToList();
 
         await GetScripts(progress, false, token);
 
-        return _scripts.ToList();
+        return Scripts.ToList();
     }
 
     public async Task RefreshScriptsAsync(IProgress<string>? progress, CancellationToken token)
@@ -51,7 +51,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
             List<ScriptInfo> scripts = await GetScriptsInfo(refresh, token);
 
             progress?.Report($"Found {scripts.Count} scripts.");
-            _scripts.AddRange(scripts);
+            Scripts.AddRange(scripts);
 
             progress?.Report($"Fetched {scripts.Count} scripts.");
             OnPropertyChanged(nameof(Scripts));
@@ -76,8 +76,8 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
 
     private async Task<List<ScriptInfo>> GetScriptsInfo(bool refresh, CancellationToken token)
     {
-        if (_scripts.Count != 0 && !refresh)
-            return _scripts.ToList();
+        if (Scripts.Count != 0 && !refresh)
+            return Scripts.ToList();
 
         using HttpResponseMessage response = await ValidatedHttpExtensions.GetAsync(HttpClients.GitHubRaw, _rawScriptsJsonUrl, token);
         string content = await response.Content.ReadAsStringAsync(token);
@@ -101,7 +101,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
 
     public async Task<int> DownloadAllWhereAsync(Func<ScriptInfo, bool> pred)
     {
-        List<ScriptInfo> toUpdate = _scripts.Where(pred).ToList();
+        List<ScriptInfo> toUpdate = Scripts.Where(pred).ToList();
         await Task.WhenAll(toUpdate.Select(s => DownloadScriptAsync(s)));
         return toUpdate.Count;
     }
@@ -265,7 +265,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
 
     public IEnumerable<ScriptInfo> GetOutdatedScripts()
     {
-        return _scripts.Where(s => s.Outdated).ToList();
+        return Scripts.Where(s => s.Outdated).ToList();
     }
 
     public async Task<int> IncrementalUpdateScriptsAsync(IProgress<string>? progress, CancellationToken token)
@@ -288,7 +288,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
                 progress?.Report("First time setup. Downloading all scripts...");
                 await RefreshScriptsAsync(progress, token);
                 await StoreCommitShaAsync(currentSha);
-                return _scripts.Count;
+                return Scripts.Count;
             }
 
             if (storedSha == currentSha)

@@ -6,6 +6,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Platforms>AnyCPU;x64</Platforms>
         <LangVersion>latest</LangVersion>
+        <!-- Suppress transitive Tmds.DBus.Protocol vulnerability (Linux-only, not used on macOS) -->
+        <NoWarn>$(NoWarn);NU1903</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

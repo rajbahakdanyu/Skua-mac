@@ -13,7 +13,9 @@
     <!-- Performance optimizations -->
     <TieredCompilation>true</TieredCompilation>
     <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <!-- Trim analysis disabled: this app requires reflection, dynamic types,
+         Newtonsoft.Json, runtime compilation, and plugin loading. -->
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Caseless.Fody" Version="1.9.1" />
+    <PackageReference Include="Caseless.Fody" Version="1.9.1" PrivateAssets="All" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />

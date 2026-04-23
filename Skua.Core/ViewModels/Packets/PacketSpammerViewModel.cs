@@ -55,11 +55,11 @@ public partial class PacketSpammerViewModel : BotControlViewModelBase
     {
         while (!token.IsCancellationRequested)
         {
-            for (int i = 0; i < _packets.Count; i++)
+            for (int i = 0; i < Packets.Count; i++)
             {
                 SelectedIndex = i;
-                Send(_packets[i]);
-                await Task.Delay(_spamDelay, token);
+                Send(Packets[i]);
+                await Task.Delay(SpamDelay, token);
             }
         }
     }
@@ -85,7 +85,7 @@ public partial class PacketSpammerViewModel : BotControlViewModelBase
     [RelayCommand]
     private void SaveSpammer()
     {
-        _fileDialog.SaveText(_packets);
+        _fileDialog.SaveText(Packets);
     }
 
     [RelayCommand]

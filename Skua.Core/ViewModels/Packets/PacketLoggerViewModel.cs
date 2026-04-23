@@ -39,13 +39,13 @@ public partial class PacketLoggerViewModel : BotControlViewModelBase
     [RelayCommand]
     private void SavePacketLogs()
     {
-        _fileDialog.SaveText(_packetLogs);
+        _fileDialog.SaveText(PacketLogs);
     }
 
     [RelayCommand]
     private void ClearFilters()
     {
-        _packetFilters.ForEach(f => f.IsChecked = false);
+        PacketFilters.ForEach(f => f.IsChecked = false);
     }
 
     [RelayCommand]
@@ -66,7 +66,7 @@ public partial class PacketLoggerViewModel : BotControlViewModelBase
     {
         get
         {
-            foreach (PacketLogFilterViewModel filter in _packetFilters)
+            foreach (PacketLogFilterViewModel filter in PacketFilters)
             {
                 if (!filter.IsChecked)
                     return true;
@@ -87,7 +87,7 @@ public partial class PacketLoggerViewModel : BotControlViewModelBase
         }
 
         string[] packet = args[0].ToString()!.Split(new[] { '%' }, StringSplitOptions.RemoveEmptyEntries);
-        foreach (PacketLogFilterViewModel filterVM in _packetFilters)
+        foreach (PacketLogFilterViewModel filterVM in PacketFilters)
         {
             if (!filterVM.IsChecked && filterVM.Filter.Invoke(packet))
                 return;

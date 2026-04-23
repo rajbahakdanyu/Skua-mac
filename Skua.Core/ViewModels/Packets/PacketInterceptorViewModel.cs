@@ -75,7 +75,7 @@ public partial class PacketInterceptorViewModel : BotControlViewModelBase
     [RelayCommand]
     private void ClearFilters()
     {
-        _packetFilters.ForEach(f => f.IsChecked = false);
+        PacketFilters.ForEach(f => f.IsChecked = false);
     }
 
     [RelayCommand]

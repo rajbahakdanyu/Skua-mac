@@ -66,8 +66,8 @@ public partial class AdvancedSkillEditorViewModel : ObservableRecipient
     [RelayCommand]
     private void SaveSkills()
     {
-        List<string> skillStrings = new(_currentSkillsList.Count);
-        foreach (SkillItemViewModel skill in _currentSkillsList)
+        List<string> skillStrings = new(CurrentSkillsList.Count);
+        foreach (SkillItemViewModel skill in CurrentSkillsList)
             skillStrings.Add(skill.Convert());
         string skills = string.Join(" | ", skillStrings);
         string modeString = SelectedClassUseMode >= 0 && SelectedClassUseMode < ClassUseModes.Length ? ClassUseModes[SelectedClassUseMode] : "Base";
@@ -109,7 +109,7 @@ public partial class AdvancedSkillEditorViewModel : ObservableRecipient
 
         int newIndex = SelectedSkillIndex + direction;
 
-        if (newIndex < 0 || newIndex >= _currentSkillsList.Count)
+        if (newIndex < 0 || newIndex >= CurrentSkillsList.Count)
             return;
 
         CurrentSkillsList.Swap(newIndex, SelectedSkillIndex);
@@ -137,7 +137,7 @@ public partial class AdvancedSkillEditorViewModel : ObservableRecipient
         }
 
         int newIndex = SelectedSkillIndex + direction;
-        if (newIndex < 0 || newIndex >= _currentSkillsList.Count)
+        if (newIndex < 0 || newIndex >= CurrentSkillsList.Count)
             return;
 
         SelectedSkillIndex = newIndex;

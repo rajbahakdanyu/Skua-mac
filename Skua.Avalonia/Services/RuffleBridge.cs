@@ -26,7 +26,7 @@ public class RuffleBridge : IDisposable, IComponent
 {
     private WebApplication? _app;
     private CancellationTokenSource? _cts;
-    private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _pendingCalls = new();
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<string?>> _pendingCalls = new();
     private static readonly HttpClient _httpClient = new(new HttpClientHandler { AllowAutoRedirect = true });
     private int _callId;
     private WebSocket? _commandSocket;
@@ -459,7 +459,7 @@ public class RuffleBridge : IDisposable, IComponent
         }
 
         string id = Interlocked.Increment(ref _callId).ToString();
-        var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var tcs = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
         _pendingCalls[id] = tcs;
 
         // Link caller's token with bridge lifetime token for combined cancellation

@@ -21,9 +21,9 @@ public partial class PluginsViewModel : BotControlViewModelBase
         StrongReferenceMessenger.Default.Register<PluginsViewModel, PluginLoadedMessage, int>(this, (int)MessageChannels.Plugins, PluginLoaded);
         StrongReferenceMessenger.Default.Register<PluginsViewModel, PluginUnloadedMessage, int>(this, (int)MessageChannels.Plugins, PluginUnLoaded);
 
-        _plugins.Clear();
+        Plugins.Clear();
         foreach (IPluginContainer container in PluginManager.Containers)
-            _plugins.Add(new(container, container.OptionContainer.Options.Count > 0));
+            Plugins.Add(new(container, container.OptionContainer.Options.Count > 0));
     }
 
     protected override void OnDeactivated()

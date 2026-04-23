@@ -76,21 +76,23 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
 
     public string? SelectedClass
     {
+#pragma warning disable MVVMTK0034 // Direct field reference to [ObservableProperty] backing field (manual property wrapper)
         get => _selectedClassString;
         set
         {
             if (SetProperty(ref _selectedClassString, value) && value is not null)
+#pragma warning restore MVVMTK0034
             {
                 CurrentClassModes = new();
                 CurrentClassModeStrings = new List<string>();
                 foreach (AdvancedSkill skill in _advancedSkills.LoadedSkills)
                 {
-                    if (skill.ClassName == _selectedClassString)
+                    if (skill.ClassName == SelectedClassString)
                         CurrentClassModes.Add(skill.ClassUseMode);
                 }
 
                 Dictionary<string, List<string>> classModes = _advancedSkills.GetAvailableClassModes();
-                if (classModes.TryGetValue(_selectedClassString, out List<string>? modes))
+                if (classModes.TryGetValue(SelectedClassString, out List<string>? modes))
                 {
                     CurrentClassModeStrings = new List<string>(modes.OrderBy(x => x));
                 }
@@ -106,7 +108,7 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
                     SelectedClassModeString = CurrentClassModeStrings.First();
                 }
 
-                OnSelectedClassStringChanged(_selectedClassString);
+                OnSelectedClassStringChanged(SelectedClassString);
             }
         }
     }
@@ -115,7 +117,7 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
     {
         try
         {
-            await Task.Run(() => _inventory.EquipItem(_selectedClassString)).ConfigureAwait(false);
+            await Task.Run(() => _inventory.EquipItem(SelectedClassString)).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -145,7 +147,7 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
         if (string.IsNullOrEmpty(SelectedClassModeString))
             return;
 
-        AdvancedSkill? skill = _advancedSkills.GetClassModeSkills(_selectedClassString, SelectedClassModeString);
+        AdvancedSkill? skill = _advancedSkills.GetClassModeSkills(SelectedClassString, SelectedClassModeString);
         if (skill != null)
         {
             SelectedClassMode = skill.ClassUseMode;
@@ -161,10 +163,10 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
 
         int[]? manualMapIDs = ParseManualMapIDs();
 
-        if (_selectedClassString is not null && _selectedClassMode is not null)
+        if (SelectedClassString is not null && SelectedClassMode is not null)
         {
             await Task.Factory.StartNew(
-                () => Auto.StartAutoHunt(_selectedClassString, (ClassUseMode)_selectedClassMode, manualMapIDs),
+                () => Auto.StartAutoHunt(SelectedClassString, (ClassUseMode)SelectedClassMode, manualMapIDs),
                 _autoCts.Token,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
@@ -187,10 +189,10 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
 
         int[]? manualMapIDs = ParseManualMapIDs();
 
-        if (_selectedClassString is not null && _selectedClassMode is not null)
+        if (SelectedClassString is not null && SelectedClassMode is not null)
         {
             await Task.Factory.StartNew(
-                () => Auto.StartAutoAttack(_selectedClassString, (ClassUseMode)_selectedClassMode, manualMapIDs),
+                () => Auto.StartAutoAttack(SelectedClassString, (ClassUseMode)SelectedClassMode, manualMapIDs),
                 _autoCts.Token,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);

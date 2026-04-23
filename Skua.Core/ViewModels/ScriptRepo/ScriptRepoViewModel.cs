@@ -76,7 +76,7 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
 
     private async Task RefreshScriptsList()
     {
-        _scripts.Clear();
+        Scripts.Clear();
         if (_getScriptsService?.Scripts != null)
         {
             List<ScriptInfoViewModel> scriptViewModels = await Task.Run(() =>
@@ -98,7 +98,7 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
                 }
                 return viewModels;
             });
-            _scripts.AddRange(scriptViewModels);
+            Scripts.AddRange(scriptViewModels);
         }
 
         OnPropertyChanged(nameof(Scripts));
@@ -118,12 +118,12 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
     private async Task Delete()
     {
         IsBusy = true;
-        if (_selectedItem is null)
+        if (SelectedItem is null)
             return;
-        ProgressReportMessage = $"Deleting {_selectedItem.FileName}.";
-        await _getScriptsService.DeleteScriptAsync(_selectedItem.Info);
-        ProgressReportMessage = $"Deleted {_selectedItem.FileName}.";
-        _selectedItem.Downloaded = false;
+        ProgressReportMessage = $"Deleting {SelectedItem.FileName}.";
+        await _getScriptsService.DeleteScriptAsync(SelectedItem.Info);
+        ProgressReportMessage = $"Deleted {SelectedItem.FileName}.";
+        SelectedItem.Downloaded = false;
         OnPropertyChanged(nameof(DownloadedQuantity));
         OnPropertyChanged(nameof(OutdatedQuantity));
         OnPropertyChanged(nameof(ScriptQuantity));
@@ -135,12 +135,12 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
     private async Task Download()
     {
         IsBusy = true;
-        if (_selectedItem is null)
+        if (SelectedItem is null)
             return;
-        ProgressReportMessage = $"Downloading {_selectedItem.FileName}.";
-        await _getScriptsService.DownloadScriptAsync(_selectedItem.Info);
-        ProgressReportMessage = $"Downloaded {_selectedItem.FileName}.";
-        _selectedItem.Downloaded = true;
+        ProgressReportMessage = $"Downloading {SelectedItem.FileName}.";
+        await _getScriptsService.DownloadScriptAsync(SelectedItem.Info);
+        ProgressReportMessage = $"Downloaded {SelectedItem.FileName}.";
+        SelectedItem.Downloaded = true;
         OnPropertyChanged(nameof(DownloadedQuantity));
         OnPropertyChanged(nameof(OutdatedQuantity));
         OnPropertyChanged(nameof(ScriptQuantity));

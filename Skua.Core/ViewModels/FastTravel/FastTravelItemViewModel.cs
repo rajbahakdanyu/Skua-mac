@@ -58,6 +58,6 @@ public partial class FastTravelItemViewModel : ObservableObject
 
     public override string ToString()
     {
-        return $"{_descriptionName},{_mapName},{_cell},{_pad}";
+        return $"{DescriptionName},{MapName},{Cell},{Pad}";
     }
 }

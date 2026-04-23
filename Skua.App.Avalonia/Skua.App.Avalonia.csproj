@@ -12,6 +12,8 @@
         <Company>Skua</Company>
         <Description>Scriptable C# bot for AdventureQuest Worlds (Cross-Platform)</Description>
         <LangVersion>latest</LangVersion>
+        <!-- Suppress transitive Tmds.DBus.Protocol vulnerability (Linux-only, not used on macOS) -->
+        <NoWarn>$(NoWarn);NU1903</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

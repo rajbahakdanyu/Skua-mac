@@ -73,11 +73,11 @@ public class RuffleFlashUtil : IFlashUtil
         try
         {
             object? o = Call(function, typeof(T), args);
-            return o is not null ? (T)o : (T)DefaultProvider.GetDefault<T>(typeof(T));
+            return o is not null ? (T)o : (T)DefaultProvider.GetDefault<T>(typeof(T))!;
         }
         catch
         {
-            return (T)DefaultProvider.GetDefault<T>(typeof(T));
+            return (T)DefaultProvider.GetDefault<T>(typeof(T))!;
         }
     }
 
