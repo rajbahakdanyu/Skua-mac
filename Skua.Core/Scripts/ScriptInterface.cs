@@ -539,20 +539,34 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             string addItems = Convert.ToString(data["items"]);
                             var addedItem = JsonConvert.DeserializeObject<Dictionary<int, dynamic>>(addItems);
                             if (addedItem is null || addedItem.Count == 0) break;
-                            int itemID = addedItem.Keys.First();
-                            ItemBase? invItem = Inventory.GetItem(itemID) ?? TempInv.GetItem(itemID);
-                            ScheduleGetSpace();
-                            if (invItem is null)
+                            // Fire-and-forget: the Flash calls for item lookup (Inventory.GetItem,
+                            // TempInv.GetItem, Bank.GetItem) must NOT run on the FlashCallConsumer
+                            // thread.  Each call blocks waiting for a WebSocket round-trip through
+                            // the same bridge, starving the script thread of Flash call bandwidth
+                            // and causing item-count reads to time out.
                             {
-                                invItem = Bank.GetItem(itemID);
-                                if (invItem is null)
-                                    break;
-                                Messenger.Send<ItemAddedToBankMessage, int>(new(invItem, invItem.Quantity), (int)MessageChannels.GameEvents);
-                                break;
+                                int addItemID = addedItem.Keys.First();
+                                dynamic addItemData = addedItem.Values.First();
+                                Task.Run(() =>
+                                {
+                                    try
+                                    {
+                                        ItemBase? invItem = Inventory.GetItem(addItemID) ?? TempInv.GetItem(addItemID);
+                                        ScheduleGetSpace();
+                                        if (invItem is null)
+                                        {
+                                            invItem = Bank.GetItem(addItemID);
+                                            if (invItem is null) return;
+                                            Messenger.Send<ItemAddedToBankMessage, int>(new(invItem, invItem.Quantity), (int)MessageChannels.GameEvents);
+                                            return;
+                                        }
+                                        if (!invItem.Temp)
+                                            Stats.Drops++;
+                                        Messenger.Send<ItemDroppedMessage, int>(new(invItem, true, Convert.ToInt32(addItemData.iQtyNow)), (int)MessageChannels.GameEvents);
+                                    }
+                                    catch { }
+                                });
                             }
-                            if (!invItem.Temp)
-                                Stats.Drops++;
-                            Messenger.Send<ItemDroppedMessage, int>(new(invItem, true, Convert.ToInt32(addedItem.Values.First().iQtyNow)), (int)MessageChannels.GameEvents);
                             break;
 
                         case "getDrop":
@@ -564,9 +578,18 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             }
                             if (toBank)
                             {
-                                ItemBase? bankItem = Bank.GetItem(Convert.ToInt32(data.ItemID));
-                                if (bankItem is not null)
-                                    Messenger.Send<ItemAddedToBankMessage, int>(new(bankItem, Convert.ToInt32(data.iQtyNow)), (int)MessageChannels.GameEvents);
+                                int getDropItemID = Convert.ToInt32(data.ItemID);
+                                int getDropQtyNow = Convert.ToInt32(data.iQtyNow);
+                                Task.Run(() =>
+                                {
+                                    try
+                                    {
+                                        ItemBase? bankItem = Bank.GetItem(getDropItemID);
+                                        if (bankItem is not null)
+                                            Messenger.Send<ItemAddedToBankMessage, int>(new(bankItem, getDropQtyNow), (int)MessageChannels.GameEvents);
+                                    }
+                                    catch { }
+                                });
                             }
                             break;
 

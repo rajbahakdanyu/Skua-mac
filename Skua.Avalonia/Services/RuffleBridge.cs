@@ -310,31 +310,28 @@ public class RuffleBridge : IDisposable, IComponent
                     bridgeWs.onclose = () => { console.log('[Skua] Bridge WS closed'); setTimeout(connectBridge, 500); };
                     bridgeWs.onerror = () => {};
 
-                    // Process calls via setTimeout(0) so the WebSocket receive pump
-                    // is not blocked by slow callExternalInterface executions.
-                    // Calls still execute sequentially on the JS event loop.
+                    // Process .NET→SWF calls directly in onmessage for lowest latency.
+                    // WebSocket messages are buffered by the browser and fire sequentially,
+                    // so no messages are lost even if callExternalInterface takes time.
                     bridgeWs.onmessage = (evt) => {
-                        const raw = evt.data;
-                        setTimeout(() => {
+                        try {
+                            const call = JSON.parse(evt.data);
+                            let result = undefined;
                             try {
-                                const call = JSON.parse(raw);
-                                let result = undefined;
-                                try {
-                                    const args = call.args || [];
-                                    result = ruffleInstance.callExternalInterface(call.name, ...args);
-                                } catch(e) {
-                                    console.warn('.NET->SWF error:', call.name, e);
-                                }
-                                let xmlResult = '<null/>';
-                                if (result !== undefined && result !== null) {
-                                    if (typeof result === 'string') xmlResult = '<string>' + escapeXml(result) + '</string>';
-                                    else if (typeof result === 'number') xmlResult = '<number>' + result + '</number>';
-                                    else if (typeof result === 'boolean') xmlResult = result ? '<true/>' : '<false/>';
-                                    else xmlResult = '<string>' + escapeXml(String(result)) + '</string>';
-                                }
-                                bridgeWs.send(JSON.stringify({ id: call.id, result: xmlResult }));
-                            } catch(e) { console.warn('[Skua] Bridge msg error:', e); }
-                        }, 0);
+                                const args = call.args || [];
+                                result = ruffleInstance.callExternalInterface(call.name, ...args);
+                            } catch(e) {
+                                console.warn('.NET->SWF error:', call.name, e);
+                            }
+                            let xmlResult = '<null/>';
+                            if (result !== undefined && result !== null) {
+                                if (typeof result === 'string') xmlResult = '<string>' + escapeXml(result) + '</string>';
+                                else if (typeof result === 'number') xmlResult = '<number>' + result + '</number>';
+                                else if (typeof result === 'boolean') xmlResult = result ? '<true/>' : '<false/>';
+                                else xmlResult = '<string>' + escapeXml(String(result)) + '</string>';
+                            }
+                            bridgeWs.send(JSON.stringify({ id: call.id, result: xmlResult }));
+                        } catch(e) { console.warn('[Skua] Bridge msg error:', e); }
                     };
                 }
                 connectBridge();
@@ -475,7 +472,7 @@ public class RuffleBridge : IDisposable, IComponent
         using var linkedCts = _cts?.Token is CancellationToken bridgeToken
             ? CancellationTokenSource.CreateLinkedTokenSource(bridgeToken, cancellationToken)
             : CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        linkedCts.CancelAfter(TimeSpan.FromSeconds(5));
+        linkedCts.CancelAfter(TimeSpan.FromSeconds(15));
 
         // Push command over WebSocket
         try
