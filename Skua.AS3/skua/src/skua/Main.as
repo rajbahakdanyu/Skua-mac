@@ -147,7 +147,30 @@ public class Main extends MovieClip {
     }
 
     public function onExtensionResponse(packet:*):void {
-        this.external.call('pext', JSON.stringify(packet));
+        try {
+            this.external.call('pext', JSON.stringify(packet));
+        } catch (e:Error) {
+            try {
+                this.external.call('pext', safeStringify(packet));
+            } catch (e2:Error) {
+                this.external.debug('Failed to serialize pext packet: ' + e2.message);
+            }
+        }
+    }
+
+    public static function safeStringify(obj:*):String {
+        var seen:Array = [];
+        return JSON.stringify(obj, function(key:String, value:*):* {
+            if (value != null && typeof value === "object") {
+                for (var i:int = 0; i < seen.length; i++) {
+                    if (seen[i] === value) {
+                        return undefined;
+                    }
+                }
+                seen.push(value);
+            }
+            return value;
+        });
     }
 
     private function onGameClick(event:MouseEvent) : void
@@ -261,7 +284,7 @@ public class Main extends MovieClip {
 
     public static function getGameObject(path:String):String {
         var obj:* = _getObjectS(instance.game, path);
-        return JSON.stringify(obj);
+        return safeStringify(obj);
     }
 
 
@@ -286,13 +309,13 @@ public class Main extends MovieClip {
             _gameClass = instance.gameDomain.getDefinition(getQualifiedClassName(instance.game)) as Class;
         }
         var obj:* = _getObjectS(_gameClass, path);
-        return JSON.stringify(obj);
+        return safeStringify(obj);
     }
 
     public static function getGameObjectKey(path:String, key:String):String {
         var obj:* = _getObjectS(instance.game, path);
         var obj2:* = obj[key];
-        return (JSON.stringify(obj2));
+        return safeStringify(obj2);
     }
 
     public static function setGameObject(path:String, value:*):void {
@@ -310,7 +333,7 @@ public class Main extends MovieClip {
 
     public static function getArrayObject(path:String, index:int):String {
         var obj:* = _getObjectS(instance.game, path);
-        return JSON.stringify(obj[index]);
+        return safeStringify(obj[index]);
     }
 
     public static function setArrayObject(path:String, index:int, value:*):void {
@@ -323,7 +346,7 @@ public class Main extends MovieClip {
         var funcName:String = parts.pop();
         var obj:* = _getObjectA(instance.game, parts);
         var func:Function = obj[funcName] as Function;
-        return JSON.stringify(func.apply(null, args));
+        return safeStringify(func.apply(null, args));
     }
 
     public static function callGameFunction0(path:String):String {
@@ -331,7 +354,7 @@ public class Main extends MovieClip {
         var funcName:String = parts.pop();
         var obj:* = _getObjectA(instance.game, parts);
         var func:Function = obj[funcName] as Function;
-        return JSON.stringify(func.apply());
+        return safeStringify(func.apply());
     }
 
     public static function selectArrayObjects(path:String, selector:String):String {
@@ -345,7 +368,7 @@ public class Main extends MovieClip {
         for (var j:int = 0; j < array.length; j++) {
             nArray.push(_getObjectS(array[j], selector));
         }
-        return JSON.stringify(nArray);
+        return safeStringify(nArray);
     }
 
     public static function _getObjectS(root:*, path:String):* {
@@ -362,14 +385,14 @@ public class Main extends MovieClip {
 
     public static function isNull(path:String):String {
         try {
-            return (_getObjectS(instance.game, path) == null).toString();
+            return String(_getObjectS(instance.game, path) == null);
         } catch (ex:Error) {
         }
         return 'true';
     }
 
     public static function isTrue():String {
-        return true.toString();
+        return 'true';
     }
 
     public static function injectScript(uri:String):void {

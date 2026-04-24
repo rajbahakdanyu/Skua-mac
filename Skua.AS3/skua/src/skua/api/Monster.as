@@ -86,7 +86,7 @@ public class Monster {
                 retMonsters.push(getMonData(monster));
             }
         }
-        return JSON.stringify(retMonsters);
+        return Main.safeStringify(retMonsters);
     }
 
     public static function getTargetMonster():String {
@@ -94,9 +94,9 @@ public class Monster {
         var monster:* = world.myAvatar.target
         if (!monster || (monster.dataLeaf && monster.dataLeaf.intHP <= 0)) {
             world.cancelTarget();
-            return JSON.stringify({});
+            return Main.safeStringify({});
         }
-        return JSON.stringify(getMonData(monster));
+        return Main.safeStringify(getMonData(monster));
     }
 
     public static function getMonsters():String {
@@ -104,7 +104,7 @@ public class Monster {
         for each (var monster:* in Main.instance.game.world.monsters) {
             retMonsters.push(getMonData(monster));
         }
-        return JSON.stringify(retMonsters);
+        return Main.safeStringify(retMonsters);
     }
 
     public static function getMonData(mon:Object):Object
@@ -125,9 +125,9 @@ public class Monster {
         if (target != null && target.pMC != null) {
             Main.instance.game.world.setTarget(target);
             Main.instance.game.world.approachTarget();
-            return true.toString();
+            return 'true';
         }
-        return false.toString();
+        return 'false';
     }
 }
 }

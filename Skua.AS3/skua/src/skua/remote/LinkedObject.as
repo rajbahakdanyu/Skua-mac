@@ -1,4 +1,5 @@
 package skua.remote {
+import skua.Main;
 
 public class LinkedObject {
     private var _id:int;
@@ -57,7 +58,7 @@ public class LinkedObject {
     }
 
     public function stringify():String {
-        return JSON.stringify(this._parent[this._name]);
+        return Main.safeStringify(this._parent[this._name]);
     }
 }
 }

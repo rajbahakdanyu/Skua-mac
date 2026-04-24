@@ -27,7 +27,7 @@ public class RemoteRegistry {
     public static function ext_create(path:String):String {
         var parts:Array = path.split(".");
         var name:String = parts.pop();
-        return createLinked(Main._getObjectA(Main.instance.getGame(), parts), name).getId().toString();
+        return String(createLinked(Main._getObjectA(Main.instance.getGame(), parts), name).getId());
     }
 
     public static function ext_destroy(id:int):void {
@@ -35,7 +35,7 @@ public class RemoteRegistry {
     }
 
     public static function ext_getChild(id:int, path:String):String {
-        return getObject(id).getChild(path).getId().toString();
+        return String(getObject(id).getChild(path).getId());
     }
 
     public static function ext_deleteChild(id:int, path:String):void {
@@ -43,7 +43,7 @@ public class RemoteRegistry {
     }
 
     public static function ext_getValue(id:int):String {
-        return JSON.stringify(getObject(id).getValue());
+        return Main.safeStringify(getObject(id).getValue());
     }
 
     public static function ext_setValue(id:int, value:*):void {
@@ -51,7 +51,7 @@ public class RemoteRegistry {
     }
 
     public static function ext_call(id:int, func:String, ...args):String {
-        return JSON.stringify((getObject(id)["call"] as Function).apply(null, [func].concat(args)));
+        return Main.safeStringify((getObject(id)["call"] as Function).apply(null, [func].concat(args)));
     }
 
     public static function getFunctionCaller(id:int):FunctionCaller {
@@ -60,7 +60,7 @@ public class RemoteRegistry {
 
     public static function ext_fcCreate(obj:int, name:String):String {
         var parent:ObjectParent = new ObjectParent(new FunctionCaller(getObject(obj).getValue(), name));
-        return createLinked(parent, "_obj").getId().toString();
+        return String(createLinked(parent, "_obj").getId());
     }
 
     public static function ext_fcPushArgsDirect(id:int, ...args):void {
@@ -83,16 +83,16 @@ public class RemoteRegistry {
     public static function ext_fcCallFlash(id:int):String {
         var val:* = getFunctionCaller(id).call();
         var parent:ObjectParent = new ObjectParent(val);
-        return createLinked(parent, "_obj").getId().toString();
+        return String(createLinked(parent, "_obj").getId());
     }
 
     public static function ext_fcCall(id:int):String {
-        return JSON.stringify(getFunctionCaller(id).call());
+        return Main.safeStringify(getFunctionCaller(id).call());
     }
 
     public static function ext_getArray(id:int, index:int):String {
         var parent:ObjectParent = new ObjectParent(getObject(id).getValue()[index]);
-        return createLinked(parent, "_obj").getId().toString();
+        return String(createLinked(parent, "_obj").getId());
     }
 
     public static function ext_setArray(id:int, index:int, value:*):void {

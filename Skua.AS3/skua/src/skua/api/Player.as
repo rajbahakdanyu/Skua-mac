@@ -34,21 +34,21 @@ public class Player {
         if (player != null && player.pMC != null) {
             Main.instance.game.world.setTarget(player);
             Main.instance.game.world.approachTarget();
-            return true.toString();
+            return 'true';
         }
-        return false.toString();
+        return 'false';
     }
 
     public static function getAvatar(id:int):String {
-        return JSON.stringify(Main.instance.game.world.avatars[id].objData);
+        return Main.safeStringify(Main.instance.game.world.avatars[id].objData);
     }
 
     public static function isLoggedIn():String {
-        return (Main.instance.game != null && Main.instance.game.sfc != null && Main.instance.game.sfc.isConnected).toString();
+        return String(Main.instance.game != null && Main.instance.game.sfc != null && Main.instance.game.sfc.isConnected);
     }
 
     public static function isKicked():String {
-        return (Main.instance.game.mcLogin != null && Main.instance.game.mcLogin.warning.visible).toString();
+        return String(Main.instance.game.mcLogin != null && Main.instance.game.mcLogin.warning.visible);
     }
 
     public function equipLoadout(setName:String, changeColors:Boolean = false): void
@@ -79,7 +79,7 @@ public class Player {
 
     public static function getLoadouts():String {
         var loadouts:Object = Main.instance.game.world.objInfo["customs"].loadouts;
-        return JSON.stringify(loadouts);
+        return Main.safeStringify(loadouts);
     }
 
     public static function Gender():String {

@@ -241,6 +241,22 @@ public class RuffleBridge : IDisposable, IComponent
                     document.addEventListener('click', () => audioCtx.resume(), { once: true });
                 } catch(e) { }
 
+                // Catch uncaught errors from Ruffle WASM (e.g. AMF recursive_serialize stack overflow).
+                // These are non-fatal Ruffle compatibility issues with AQW's complex object graphs.
+                window.addEventListener('error', (e) => {
+                    if (e.message && e.message.includes('call stack size exceeded')) {
+                        console.warn('[Skua] Suppressed Ruffle stack overflow (known AQW compat issue)');
+                        e.preventDefault();
+                        return true;
+                    }
+                });
+                window.addEventListener('unhandledrejection', (e) => {
+                    if (e.reason && String(e.reason).includes('call stack size exceeded')) {
+                        console.warn('[Skua] Suppressed Ruffle async stack overflow');
+                        e.preventDefault();
+                    }
+                });
+
                 // Proxy override: intercept ALL external fetch/XHR through our local server
                 const cdnHosts = ['unpkg.com', 'cdn.jsdelivr.net', 'cdnjs.cloudflare.com'];
                 function shouldProxy(url) {
@@ -304,34 +320,69 @@ public class RuffleBridge : IDisposable, IComponent
                 let bridgeWs = null;
                 let ruffleInstance = null;
 
+                // Queue-based call processing to avoid "Unable to lock Ruffle core".
+                // Ruffle uses a RefCell internally; when it yields to the JS event loop
+                // during async socket I/O, the core is still borrowed. If our onmessage
+                // fires during that yield and calls callExternalInterface, the borrow
+                // fails. By deferring calls via setTimeout(0), we ensure they execute
+                // only when Ruffle's core is available (after the current tick completes).
+                const callQueue = [];
+                let queueRunning = false;
+
+                function processOneCall() {
+                    if (callQueue.length === 0) {
+                        queueRunning = false;
+                        return;
+                    }
+                    const data = callQueue.shift();
+                    try {
+                        const call = JSON.parse(data);
+                        let result = undefined;
+                        try {
+                            const args = call.args || [];
+                            result = ruffleInstance.callExternalInterface(call.name, ...args);
+                        } catch(e) {
+                            if (e instanceof RangeError) {
+                                console.warn('[Skua] Ruffle stack overflow in', call.name, '(circular object graph)');
+                            } else {
+                                console.warn('.NET->SWF error:', call.name, e);
+                            }
+                        }
+                        let xmlResult = '<null/>';
+                        if (result !== undefined && result !== null) {
+                            if (typeof result === 'string') xmlResult = '<string>' + escapeXml(result) + '</string>';
+                            else if (typeof result === 'number') xmlResult = '<number>' + result + '</number>';
+                            else if (typeof result === 'boolean') xmlResult = result ? '<true/>' : '<false/>';
+                            else xmlResult = '<string>' + escapeXml(String(result)) + '</string>';
+                        }
+                        bridgeWs.send(JSON.stringify({ id: call.id, result: xmlResult }));
+                    } catch(e) {
+                        try {
+                            const parsed = JSON.parse(data);
+                            if (parsed.id) bridgeWs.send(JSON.stringify({ id: parsed.id, result: '<null/>' }));
+                        } catch(_) {}
+                        console.warn('[Skua] Bridge msg error:', e);
+                    }
+                    // Yield to browser between calls so Ruffle can tick
+                    if (callQueue.length > 0) {
+                        setTimeout(processOneCall, 0);
+                    } else {
+                        queueRunning = false;
+                    }
+                }
+
                 function connectBridge() {
                     bridgeWs = new WebSocket('wss://localhost:' + location.port + '/bridge');
                     bridgeWs.onopen = () => console.log('[Skua] Bridge WS connected');
                     bridgeWs.onclose = () => { console.log('[Skua] Bridge WS closed'); setTimeout(connectBridge, 500); };
                     bridgeWs.onerror = () => {};
 
-                    // Process .NET→SWF calls directly in onmessage for lowest latency.
-                    // WebSocket messages are buffered by the browser and fire sequentially,
-                    // so no messages are lost even if callExternalInterface takes time.
                     bridgeWs.onmessage = (evt) => {
-                        try {
-                            const call = JSON.parse(evt.data);
-                            let result = undefined;
-                            try {
-                                const args = call.args || [];
-                                result = ruffleInstance.callExternalInterface(call.name, ...args);
-                            } catch(e) {
-                                console.warn('.NET->SWF error:', call.name, e);
-                            }
-                            let xmlResult = '<null/>';
-                            if (result !== undefined && result !== null) {
-                                if (typeof result === 'string') xmlResult = '<string>' + escapeXml(result) + '</string>';
-                                else if (typeof result === 'number') xmlResult = '<number>' + result + '</number>';
-                                else if (typeof result === 'boolean') xmlResult = result ? '<true/>' : '<false/>';
-                                else xmlResult = '<string>' + escapeXml(String(result)) + '</string>';
-                            }
-                            bridgeWs.send(JSON.stringify({ id: call.id, result: xmlResult }));
-                        } catch(e) { console.warn('[Skua] Bridge msg error:', e); }
+                        callQueue.push(evt.data);
+                        if (!queueRunning) {
+                            queueRunning = true;
+                            setTimeout(processOneCall, 0);
+                        }
                     };
                 }
                 connectBridge();
@@ -351,7 +402,8 @@ public class RuffleBridge : IDisposable, IComponent
 
                 const knownCalls = [
                     'requestLoadGame', 'debug', 'pre-load', 'loaded', 'pext',
-                    'openWebsite', 'cycleComplete', 'cycleCompleteS'
+                    'openWebsite', 'cycleComplete', 'cycleCompleteS',
+                    'packet', 'packetFromServer'
                 ];
                 knownCalls.forEach(name => { window[name] = makeFlashCallForwarder(name); });
 

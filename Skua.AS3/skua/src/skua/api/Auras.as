@@ -40,11 +40,15 @@ public class Auras {
         }
     }
 
-    public static function getSubjectAuras(subject:String):Array {
+    public static function getSubjectAuras(subject:String):String {
+        return Main.safeStringify(getSubjectAurasArray(subject));
+    }
+
+    private static function getSubjectAurasArray(subject:String):Array {
         if (subject == 'Self')
         {
             var userObj:* = Main.instance.game.world.uoTree[Main.instance.game.sfc.myUserName.toLowerCase()];
-            return rebuildAuraArray(userObj.auras)
+            return rebuildAuraArray(userObj.auras);
         }
         else
         {
@@ -53,7 +57,7 @@ public class Auras {
                 monID = Main.instance.game.world.myAvatar.target.dataLeaf.MonMapID;
             }
             var monObj:* = Main.instance.game.world.monTree[monID];
-            return rebuildAuraArray(monObj.auras)
+            return rebuildAuraArray(monObj.auras);
         }
     }
 
@@ -106,11 +110,11 @@ public class Auras {
         return rebuiltAuras;
     }
 
-    public static function rebuilduoTree(playerName:String):Object {
+    public static function rebuilduoTree(playerName:String):String {
         var plrUser:String = playerName.toLowerCase();
         var userObj:* = Main.instance.game.world.uoTree[plrUser];
         if (!userObj) {
-            return {};
+            return '{}';
         }
 
         var rebuiltObj:Object = {};
@@ -122,13 +126,13 @@ public class Auras {
             }
         }
 
-        return rebuiltObj;
+        return Main.safeStringify(rebuiltObj);
     }
 
-    public static function rebuildmonTree(monID:int):Object {
+    public static function rebuildmonTree(monID:int):String {
         var monObj:* = Main.instance.game.world.monTree[monID];
         if (!monObj) {
-            return {};
+            return '{}';
         }
         var rebuiltObj:Object = {};
         for (var prop:String in monObj) {
@@ -138,16 +142,16 @@ public class Auras {
                 rebuiltObj[prop] = monObj[prop];
             }
         }
-        return rebuiltObj;
+        return Main.safeStringify(rebuiltObj);
     }
 
     public static function HasAnyActiveAura(subject:String, auraNames:String):String {
         var auraList:Array = auraNames.split(',');
-        var auras:Object = null;
+        var auras:Array = null;
         try {
-            auras = getSubjectAuras(subject);
+            auras = getSubjectAurasArray(subject);
         } catch (e:Error) {
-            return false.toString();
+            return 'false';
         }
 
         var auraCount:int = auras.length;
@@ -158,18 +162,18 @@ public class Auras {
             var auraNameLower:String = aura.nam.toLowerCase();
             for (var j:int = 0; j < auraListCount; j++) {
                 if (auraNameLower == auraList[j].toLowerCase().trim()) {
-                    return true.toString();
+                    return 'true';
                 }
             }
         }
-        return false.toString();
+        return 'false';
     }
 
     public static function GetAurasValue(subject:String, auraName:String):Number {
         var aura:Object = null;
         var auras:Array = null;
         try {
-            auras = getSubjectAuras(subject);
+            auras = getSubjectAurasArray(subject);
         } catch (e:Error) {
             return 442;
         }
@@ -191,7 +195,7 @@ public class Auras {
             if (!userObj) {
                 return '[]';
             }
-            return JSON.stringify(rebuildAuraArray(userObj.auras))
+            return Main.safeStringify(rebuildAuraArray(userObj.auras))
         }
         catch (e:Error) {
         }
@@ -213,7 +217,7 @@ public class Auras {
             if (!monObj) {
                 return 'Error: Couldn\'t get Monster Object Tree';
             }
-            return JSON.stringify(rebuildAuraArray(monObj.auras));
+            return Main.safeStringify(rebuildAuraArray(monObj.auras));
         }
         catch (e:Error) {
         }
@@ -226,7 +230,7 @@ public class Auras {
             if (!monObj) {
                 return 'Error: Couldn\'t get Monster Object Tree';
             }
-            return JSON.stringify(rebuildAuraArray(monObj.auras));
+            return Main.safeStringify(rebuildAuraArray(monObj.auras));
         }
         catch (e:Error) {
         }

@@ -52,10 +52,15 @@ public class World {
     }
 
     public static function jumpCorrectPad(cell:String, clientOnly:Boolean = false):void {
+        var world:* = Main.instance.game.world;
+        if (world == null || world.map == null)
+            return;
         var cellPad:String = 'Left';
         var padArr:Array = getCellPads();
-        var world:* = Main.instance.game.world;
         
+        if (padArr.length == 0)
+            return;
+
         if (padArr.indexOf(cellPad) >= 0) {
             if (world.strPad === cellPad)
                 return;
@@ -70,6 +75,8 @@ public class World {
 
     public static function getCellPads():Array {
         var cellPads:Array = [];
+        if (Main.instance.game == null || Main.instance.game.world == null || Main.instance.game.world.map == null)
+            return cellPads;
         var cellPadsCnt:int = Main.instance.game.world.map.numChildren;
         for (var i:int = 0; i < cellPadsCnt; ++i) {
             var child:DisplayObject = Main.instance.game.world.map.getChildAt(i);
