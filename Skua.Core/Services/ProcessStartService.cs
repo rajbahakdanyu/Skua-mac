@@ -1,6 +1,7 @@
 ﻿using Skua.Core.Interfaces;
 using Skua.Core.Models;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Skua.Core.Services;
 
@@ -40,7 +41,7 @@ public class ProcessStartService : IProcessService
         }
         catch
         {
-            _dialogService.ShowMessageBox("VSCode was not found. If you have VSCode, reinstall it and be sure to check it to install in you PATH folder.", "VSCode not found");
+            _dialogService.ShowMessageBox("Could not open a code editor. Install VS Code or set a default editor for .cs files.", "Editor not found");
         }
     }
 
@@ -59,7 +60,11 @@ public class ProcessStartService : IProcessService
         {
             try
             {
-                Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+                // Fallback: open the file with the OS default editor
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    Process.Start("open", path);
+                else
+                    Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
             }
             catch { }
         }
@@ -67,9 +72,22 @@ public class ProcessStartService : IProcessService
 
     private void VSCode(string path)
     {
-        ProcessStartInfo psi = new("code", $"{_scriptsPath} {path}")
+        // On macOS, "code" may not be in PATH. Try the standard VS Code CLI location first.
+        string codeCmd = "code";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            UseShellExecute = true,
+            string macVscPath = "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code";
+            if (File.Exists(macVscPath))
+                codeCmd = macVscPath;
+        }
+
+        string args = string.IsNullOrEmpty(path)
+            ? _scriptsPath
+            : $"\"{_scriptsPath}\" \"{path}\" --reuse-window";
+
+        ProcessStartInfo psi = new(codeCmd, args)
+        {
+            UseShellExecute = false,
             CreateNoWindow = true
         };
 
