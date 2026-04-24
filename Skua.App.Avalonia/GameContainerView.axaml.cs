@@ -38,7 +38,24 @@ public partial class GameContainerView : UserControl
         string? browser = FindChromiumBrowser();
         if (browser != null)
         {
-            using var p = System.Diagnostics.Process.Start(browser, $"--allow-insecure-localhost \"{url}\"");
+            // Use a dedicated user-data-dir so Chrome starts a NEW process that
+            // actually respects the command-line flags.  When Chrome is already
+            // running, a plain launch just opens a tab in the existing process
+            // and all flags (including --allow-insecure-localhost) are ignored,
+            // causing SSL handshake failures with the self-signed Kestrel cert.
+            string profileDir = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "Skua", "ChromeProfile");
+            System.IO.Directory.CreateDirectory(profileDir);
+
+            string args = string.Join(" ",
+                $"--user-data-dir=\"{profileDir}\"",
+                "--allow-insecure-localhost",
+                "--no-first-run",
+                "--no-default-browser-check",
+                $"\"{url}\"");
+
+            using var p = System.Diagnostics.Process.Start(browser, args);
             return;
         }
         Ioc.Default.GetRequiredService<IProcessService>().OpenLink(url);

@@ -23,6 +23,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
     private readonly ILogService _logger;
     private readonly IDialogService _dialogService;
     private readonly ISettingsService _settingsService;
+    private int _getSpacePending;
 
     public bool ShouldExit => Manager.ShouldExit;
     public Version Version { get; }
@@ -392,6 +393,21 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
 
     private void HandleFlashCall(string name, object[]? args)
     {
+        // Fire-and-forget Stats.GetSpace() so FlashCallConsumer threads
+        // are not blocked by synchronous Flash round-trips (~200ms each).
+        void ScheduleGetSpace()
+        {
+            if (Interlocked.CompareExchange(ref _getSpacePending, 1, 0) == 0)
+            {
+                Task.Run(() =>
+                {
+                    try { Stats.GetSpace(); }
+                    catch { }
+                    finally { Interlocked.Exchange(ref _getSpacePending, 0); }
+                });
+            }
+        }
+
         switch (name)
         {
             case "pre-load":
@@ -450,7 +466,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             break;
 
                         case "moveToArea":
-                            Stats.GetSpace();
+                            ScheduleGetSpace();
                             Messenger.Send<MapChangedMessage, int>(new(Convert.ToString(data.strMapName)), (int)MessageChannels.GameEvents);
                             Map.FilePath = Convert.ToString(data.strMapFileName);
                             Map.LastMap = Convert.ToString(data.strMapName);
@@ -493,7 +509,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             break;
 
                         case "sellItem":
-                            Stats.GetSpace();
+                            ScheduleGetSpace();
                             Messenger.Send<ItemSoldMessage, int>(new(
                                 Convert.ToInt32(data.CharItemID),
                                 Convert.ToInt32(data.iQty),
@@ -507,7 +523,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             if (data.bitSuccess == 1)
                             {
                                 Messenger.Send<ItemBoughtMessage, int>(new(Convert.ToInt32(data.CharItemID)), (int)MessageChannels.GameEvents);
-                                Stats.GetSpace();
+                                ScheduleGetSpace();
                             }
                             break;
 
@@ -525,7 +541,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             if (addedItem is null || addedItem.Count == 0) break;
                             int itemID = addedItem.Keys.First();
                             ItemBase? invItem = Inventory.GetItem(itemID) ?? TempInv.GetItem(itemID);
-                            Stats.GetSpace();
+                            ScheduleGetSpace();
                             if (invItem is null)
                             {
                                 invItem = Bank.GetItem(itemID);
@@ -544,7 +560,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             if (data.bSuccess == 1)
                             {
                                 Stats.Drops += (int)data.iQty;
-                                Stats.GetSpace();
+                                ScheduleGetSpace();
                             }
                             if (toBank)
                             {
@@ -571,12 +587,12 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             break;
 
                         case "loadBank":
-                            Stats.GetSpace();
+                            ScheduleGetSpace();
                             Messenger.Send<BankLoadedMessage, int>((int)MessageChannels.GameEvents);
                             break;
 
                         case "loadShop":
-                            Stats.GetSpace();
+                            ScheduleGetSpace();
                             Messenger.Send<ShopLoadedMessage, int>(new(new(Shops.ID, Shops.Name, Shops.Items)), (int)MessageChannels.GameEvents);
                             break;
                     }
@@ -597,7 +613,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             break;
 
                         case "loginResponse":
-                            Stats.GetSpace();
+                            ScheduleGetSpace();
                             Options.CustomName = string.Empty;
                             Options.CustomGuild = string.Empty;
                             Messenger.Send<LoginMessage, int>(new(Convert.ToString(data[4])), (int)MessageChannels.GameEvents);
@@ -621,7 +637,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                     case "buyItem":
                         if (parts.Length >= 7)
                         {
-                            Stats.GetSpace();
+                            ScheduleGetSpace();
                             Messenger.Send<TryBuyItemMessage, int>(new(int.Parse(parts[5]), int.Parse(parts[4]), int.Parse(parts[6])), (int)MessageChannels.GameEvents);
                         }
                         break;

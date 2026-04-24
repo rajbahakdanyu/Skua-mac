@@ -32,13 +32,13 @@ public class RuffleBridge : IDisposable, IComponent
     private WebSocket? _commandSocket;
     private readonly SemaphoreSlim _wsSendLock = new(1, 1);
     private readonly Channel<(string function, object[] args)> _flashCallChannel =
-        Channel.CreateBounded<(string, object[])>(new BoundedChannelOptions(256)
+        Channel.CreateBounded<(string, object[])>(new BoundedChannelOptions(4096)
         {
             FullMode = BoundedChannelFullMode.DropOldest,
-            SingleReader = true,
+            SingleReader = false,
             SingleWriter = true
         });
-    private Thread? _flashCallThread;
+    private Thread[]? _flashCallThreads;
 
     public event Action<string, object[]>? FlashCall;
     public event EventHandler? Disposed;
@@ -121,14 +121,19 @@ public class RuffleBridge : IDisposable, IComponent
         if (_app is null)
             throw new InvalidOperationException("Could not find an available port for the Ruffle bridge.");
 
-        // Start a dedicated thread for FlashCall event processing.
-        // This prevents thread pool exhaustion when handlers call back into Flash.
-        _flashCallThread = new Thread(FlashCallConsumer)
+        // Start dedicated threads for FlashCall event processing.
+        // Multiple threads prevent a single slow handler (e.g. one that calls
+        // back into Flash via CallFunction) from blocking all event processing.
+        _flashCallThreads = new Thread[3];
+        for (int i = 0; i < _flashCallThreads.Length; i++)
         {
-            IsBackground = true,
-            Name = "FlashCallConsumer"
-        };
-        _flashCallThread.Start();
+            _flashCallThreads[i] = new Thread(FlashCallConsumer)
+            {
+                IsBackground = true,
+                Name = $"FlashCallConsumer-{i}"
+            };
+            _flashCallThreads[i].Start();
+        }
     }
 
     private void MapEndpoints(WebApplication app)
@@ -305,27 +310,31 @@ public class RuffleBridge : IDisposable, IComponent
                     bridgeWs.onclose = () => { console.log('[Skua] Bridge WS closed'); setTimeout(connectBridge, 500); };
                     bridgeWs.onerror = () => {};
 
-                    // Process calls directly in onmessage — no setTimeout (throttled in background tabs).
-                    // With .NET serialization removed, calls arrive one at a time or in small bursts.
+                    // Process calls via setTimeout(0) so the WebSocket receive pump
+                    // is not blocked by slow callExternalInterface executions.
+                    // Calls still execute sequentially on the JS event loop.
                     bridgeWs.onmessage = (evt) => {
-                        try {
-                            const call = JSON.parse(evt.data);
-                            let result = undefined;
+                        const raw = evt.data;
+                        setTimeout(() => {
                             try {
-                                const args = call.args || [];
-                                result = ruffleInstance.callExternalInterface(call.name, ...args);
-                            } catch(e) {
-                                console.warn('.NET->SWF error:', call.name, e);
-                            }
-                            let xmlResult = '<null/>';
-                            if (result !== undefined && result !== null) {
-                                if (typeof result === 'string') xmlResult = '<string>' + escapeXml(result) + '</string>';
-                                else if (typeof result === 'number') xmlResult = '<number>' + result + '</number>';
-                                else if (typeof result === 'boolean') xmlResult = result ? '<true/>' : '<false/>';
-                                else xmlResult = '<string>' + escapeXml(String(result)) + '</string>';
-                            }
-                            bridgeWs.send(JSON.stringify({ id: call.id, result: xmlResult }));
-                        } catch(e) { console.warn('[Skua] Bridge msg error:', e); }
+                                const call = JSON.parse(raw);
+                                let result = undefined;
+                                try {
+                                    const args = call.args || [];
+                                    result = ruffleInstance.callExternalInterface(call.name, ...args);
+                                } catch(e) {
+                                    console.warn('.NET->SWF error:', call.name, e);
+                                }
+                                let xmlResult = '<null/>';
+                                if (result !== undefined && result !== null) {
+                                    if (typeof result === 'string') xmlResult = '<string>' + escapeXml(result) + '</string>';
+                                    else if (typeof result === 'number') xmlResult = '<number>' + result + '</number>';
+                                    else if (typeof result === 'boolean') xmlResult = result ? '<true/>' : '<false/>';
+                                    else xmlResult = '<string>' + escapeXml(String(result)) + '</string>';
+                                }
+                                bridgeWs.send(JSON.stringify({ id: call.id, result: xmlResult }));
+                            } catch(e) { console.warn('[Skua] Bridge msg error:', e); }
+                        }, 0);
                     };
                 }
                 connectBridge();
@@ -478,8 +487,11 @@ public class RuffleBridge : IDisposable, IComponent
                 _wsSendLock.Wait(linkedCts.Token);
                 try
                 {
-                    ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None)
-                       .Wait(TimeSpan.FromSeconds(2));
+                    // Use the linked CTS token so the send is properly cancelled
+                    // on timeout instead of leaving an orphaned send running
+                    // (which would corrupt WebSocket framing on the next send).
+                    ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, linkedCts.Token)
+                       .GetAwaiter().GetResult();
                 }
                 finally { _wsSendLock.Release(); }
             }

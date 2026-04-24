@@ -46,7 +46,7 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
     public int DownloadedQuantity => _getScriptsService?.Downloaded ?? 0;
     public int OutdatedQuantity => _getScriptsService?.Outdated ?? 0;
     public int ScriptQuantity => _getScriptsService?.Total ?? 0;
-    public int BotScriptQuantity => _scripts.Count;
+    public int BotScriptQuantity => Scripts.Count;
     public IRelayCommand OpenScriptFolderCommand { get; }
 
     [RelayCommand]
